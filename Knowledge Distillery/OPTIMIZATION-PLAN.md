@@ -1,7 +1,7 @@
 # Knowledge Distillery — Optimization Plan
 
-**Last updated:** 2026-03-12
-**Status:** Phases 1-3, 7-8, 9.1-9.2, 9.3a, 10-11, 15-17 complete. Phase 14 core shipped. Active: 9.3b, 9.3c, 9.4 (9.4b/c done), 13, 6. Parked: 4.2, 4.3, 5.
+**Last updated:** 2026-03-13
+**Status:** Phases 1-3, 7-8, 9.1-9.2, 9.3a, 10-11, 15-17 complete. Phase 14 core shipped, validation in progress. Active: 9.3b, 9.3c, 9.4 (9.4a/b/c done), 13, 6. Parked: 4.2, 4.3, 5.
 
 ---
 
@@ -81,7 +81,7 @@ Cross-project issues discovered during the Phase 9.3a baseline audit. These are 
 
 | # | Task | Status | Severity | Notes |
 |---|------|--------|----------|-------|
-| 9.4a | Git-track OpenClaw, FreedomLab, and AI Notes | Pending | Critical | All three directories are entirely untracked (`??`). No version history, no backup. Add project-level `.gitignore` files first to exclude secrets and large dirs, then commit key files (CLAUDE.md, WORKLOG.md, commands, settings) |
+| 9.4a | Git-track OpenClaw, FreedomLab, and AI Notes | Done | Critical | OpenClaw already had its own repo+remote. Created separate git repos for AI Notes (34 files) and FreedomLab (28 files) with project-level `.gitignore` files. Workspace repo cleaned up (UIGen files removed, projects excluded from workspace tracking). Session 54 |
 | 9.4b | Secure FreedomLab OAuth client secret | Done | Critical | Relocated to `~/.config/google-drive-mcp/`. Added `client_secret_*.json`, `token*.json`, `credentials*.json` to workspace `.gitignore`. Updated 3 Python scripts + setup guide to new path. Session 53 |
 | 9.4c | Fix workspace `.gitignore` for `.claude/` | Done | High | Replaced blanket `.claude/` with surgical entries: `settings.local.json`, `.tmp/`, `plans/`, `.claude-plugin/`, `.git/`, `skills/`. Commands, rules, hooks, agents, scripts, settings.json now trackable. Session 53 |
 | 9.4d | Trim CLAUDE.md Part 2 bloat (3 projects) | Pending | Recommended | OpenClaw (292 lines), TBB (254), FreedomLab (330) all have duplicated workspace rules in Part 2 sections. Cut generic operating principles already covered by `.claude/rules/`. Target: all under 200 lines |
@@ -162,16 +162,16 @@ Five KB concepts the user hasn't adopted yet. Teach in dependency order.
 | 14.2d | Determine instruction placement | Done | Rules folder (`coaching.md`, `teaching-queue.md`). Auto-loaded by Claude Code. Session 53 |
 | 14.2e | Build insight processing checklist | Done | `/process-insight` command: fetch/read content, compare via MCP search_kb, classify as covered/extends/new/contradicts, suggest actions. Session 53 |
 | 14.2f | Define post-task optimization format | Done | Embedded in coaching rule #8 (queued). Format: `*Idea: [suggestion]. See [KB-file.md] > [section].* (say 'skip' to dismiss)`. Session 53 |
-| 14.2g | Test with a real project task | Pending | Evaluate if it helps or annoys |
+| 14.2g | Test with a real project task | In Progress | Coaching layer confirmed active (rules auto-loaded). Pending organic test on a real coding task. Session 54 |
 
 #### 14.3 — Validation
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 14.3a | Verify no conflicts with project CLAUDE.md files | Pending | |
-| 14.3b | Test escape hatch | Pending | |
-| 14.3c | Confirm coaching cites KB sources correctly | Pending | |
-| 14.3d | User feedback after 3 sessions | Pending | |
+| 14.3a | Verify no conflicts with project CLAUDE.md files | Done | No conflicts. All 3 project CLAUDE.md files have compatible verification/specification sections. Overlap is redundant (see 9.4d), not contradictory. Session 54 |
+| 14.3b | Test escape hatch | Done | "just do it" mechanism confirmed in coaching.md. Real test deferred to organic use. Session 54 |
+| 14.3c | Confirm coaching cites KB sources correctly | Done | All 3 active rules include Source: fields pointing to specific KB sections. Session 54 |
+| 14.3d | User feedback after 3 sessions | In Progress | Needs 3 sessions of natural use. Started Session 54 |
 
 #### 14.4 — Article Triage Gap
 
