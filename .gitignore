@@ -1,0 +1,62 @@
+# AI Notes -- project .gitignore
+
+# Cloned repos (reference material, not our code)
+anthropic-courses/
+awesome-openclaw-usecases/
+claude-agent-sdk-demos/
+claude-agent-sdk-python/
+claude-code-action/
+claude-code-best-practice/
+claude-code-monitoring-guide/
+claude-cookbooks/
+claude-plugins-official/
+claude-quickstarts/
+everything-claude-code/
+get-shit-done/
+langextract/
+
+# Source note directories (private inputs, read-only)
+Andrew Vibe Coding/
+Claude Code/
+Clawdbot aka Openclaw/
+Old Notes/
+Ralph Wiggum/
+Scrapling/
+Threads/
+Twitter Bookmarks/
+x-research-skill/
+I Have Spent 500+ Hours Programming With AI. This Is what I learned/
+skills/
+_EXAMPLES/
+
+# Python artifacts
+__pycache__/
+*.pyc
+
+# Python virtual environments
+kb-mcp/.venv/
+
+# KD internal work archive
+Knowledge Distillery/_work-archive/
+
+# Vector DB and index artifacts
+Knowledge Distillery/.vectordb/
+Knowledge Distillery/_index_meta.json
+
+# Retired scripts
+refresh_bird_cookies.py
+
+# Triage scratch files
+truly_new_files.txt
+scan_sources.py
+
+# Environment and secrets
+.env
+.env.*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Obsidian
+.obsidian/

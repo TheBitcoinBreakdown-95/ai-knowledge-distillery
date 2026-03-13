@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/GC/.claude/projects/c--Users-GC-Documents-Ai-Playground/memory/**)"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\GC\\Documents\\Ai Playground\\Clawdbot aka Openclaw",
+      "c:\\Users\\GC\\Documents\\Ai Playground\\FreedomLab",
+      "c:\\Users\\GC\\Documents\\Ai Playground\\TBB"
+    ]
+  }
+}
