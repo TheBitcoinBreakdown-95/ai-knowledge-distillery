@@ -2,8 +2,6 @@
 
 A synthesized, deduplicated reference extracted from ~160 source files of AI/LLM notes. Each file below is self-contained and optimized for quick scanning — headers, bullets, tables, cross-references.
 
-Built 2026-02-27. Source notes live in the parent `AI Notes/` directory.
-
 ---
 
 ## Why This Exists
@@ -57,11 +55,11 @@ Content flows through three layers as it matures from raw notes into verified re
 
 | Layer | Where It Lives | What Happens |
 |-------|---------------|--------------|
-| **1. Raw sources** | Source directories (`AI Notes/` subfolders, `Clawdbot aka Openclaw/Research/`) | Original articles, threads, notes — untouched. Never moved or deleted. |
+| **1. Raw sources** | Your source directories (any folders you configure) | Original articles, threads, notes — untouched. Never moved or deleted. |
 | **2. Recent Additions** | `## Recent Additions` sections at the bottom of topic files | `/process-notes` extracts, classifies, deduplicates, and appends new insights here. Content is usable but not yet integrated into the main narrative. |
 | **3. Main body** | The primary sections of each topic file | `/consolidate-kb` merges Recent Additions into the main body. Content reads as one coherent reference with no temporal seams. |
 
-The system is designed so that anyone forking this project can follow the same pipeline: drop notes into source directories, run `/process-notes` to extract into layer 2, run `/consolidate-kb` to promote to layer 3. Provenance is tracked at every step via `sources/ingested-files.md` and `sources/source-index.md`.
+The system is designed so that anyone forking this project can follow the same pipeline: drop notes into source directories, run `/process-notes` to extract into layer 2, run `/consolidate-kb` to promote to layer 3. Provenance is tracked at every step via `sources/source-index.md`.
 
 ---
 
@@ -102,8 +100,8 @@ Falls back to keyword-only if Ollama is unavailable.
 ### Keeping the Index Current
 
 - **Automatic:** A reindex hook triggers `indexer.py --changed` when KB files are edited through Claude. Only changed files re-embed.
-- **Manual:** After editing KB files outside Claude: `cd "AI/AI Notes/kb-mcp" && .venv/Scripts/python indexer.py --changed`
-- **Full rebuild:** `cd "AI/AI Notes/kb-mcp" && .venv/Scripts/python indexer.py` (all chunks, ~3 minutes)
+- **Manual:** After editing KB files outside Claude: `cd kb-mcp && .venv/Scripts/python indexer.py --changed`
+- **Full rebuild:** `cd kb-mcp && .venv/Scripts/python indexer.py` (all chunks, ~3 minutes)
 
 ### Requirements
 
@@ -131,8 +129,6 @@ Falls back to keyword-only if Ollama is unavailable.
 | Browse community tips and tools | [community-insights.md](community-insights.md) |
 | Search the KB semantically | Use `search_kb` MCP tool (see [Retrieval Layer](#retrieval-layer-local-search-engine)) |
 | Understand why we built it this way | [DECISIONS.md](DECISIONS.md) |
-| See the optimization roadmap | [OPTIMIZATION-PLAN.md](OPTIMIZATION-PLAN.md) |
-| Review completed optimization phases | [OPTIMIZATION-ARCHIVE.md](_work-archive/OPTIMIZATION-ARCHIVE.md) |
 | Understand the KB pipeline internals | [KB-PROCESS.md](KB-PROCESS.md) |
 
 ---
@@ -351,10 +347,10 @@ Impact tiers: **Foundational** (learn first), **Core** (daily use), **Enhancing*
 
 ## Adding New Notes
 
-1. Drop notes anywhere in the source directories (`AI Notes/` subfolders or `Clawdbot aka Openclaw/Research/`)
-2. Run `/process-notes` — Claude scans all source directories, compares against `sources/ingested-files.md`, and processes only new (untracked) files
+1. Drop notes anywhere in the configured source directories
+2. Run `/process-notes` -- Claude scans all source directories, compares against tracked files, and processes only new (untracked) files
 3. New content appears in `## Recent Additions` sections at the bottom of updated KB files
-4. Processing is logged in `sources/processing-log.md` and `sources/ingested-files.md`
+4. Processing is logged in provenance files under `sources/`
 
 ---
 

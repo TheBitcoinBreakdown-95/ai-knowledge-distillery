@@ -273,36 +273,3 @@ Niche domains, autonomous systems, and architectural decisions for specific use 
 ## Teaching Candidates
 
 New concepts flagged by `/process-notes` as potentially teach-worthy (3+ sources, affects 2+ KB files, introduces new workflows, or contradicts existing practice). Review and promote to a level above when verified.
-
-### Queued for Teaching (Session 19)
-
-| # | Concept | Level | Prerequisites | KB Location |
-|---|---------|-------|---------------|-------------|
-| T1 | Personas: Imaginary Colleagues | 3 | #15 (Subagents) | agent-design.md → Personas |
-| T2 | Meta-Agent Architecture | 3 | #15 (Subagents), #16 (Personas) | agent-design.md → Meta-Agent Architecture |
-| T3 | Prompt Cache Architecture | 3 | #7 (Context Window) | context-engineering.md → Prompt Cache Architecture |
-| T4 | Agent Teams | 4 | #18 (Meta-Agent), #15 (Subagents) | agent-design.md → Agent Teams |
-| T5 | claude-mem Plugin | 4 | #3 (CLAUDE.md), #10 (Worklogs) | memory-persistence.md → Layer 3: claude-mem Plugin |
-
-**Recommended order:** T1 → T3 → T2 → T5 → T4 (personas first because meta-agent depends on it; cache before meta-agent because cost matters when running multiple terminals; claude-mem before agent teams because memory across sessions is foundational to multi-agent work)
-
-### Queued for Teaching (Session 21)
-
-- **GSD Wave Execution** — Context-aware spec-driven development with fresh-context-per-executor and model profiles per agent. Routed to: workflow-patterns, skills, testing-verification. Sources: 3. Criteria: cross-cutting (3 KB files), introduces new named workflow.
-- **Nyquist Validation Layer** — Pre-implementation test coverage mapping that creates feedback contracts before code is written. Routed to: testing-verification, workflow-patterns. Sources: 2. Criteria: introduces new named pattern, cross-cutting (2 KB files).
-- **Immutable Test List Pattern** — Two-agent multi-session autonomous coding with 200-feature immutable spec and regression verification mandate. Routed to: workflow-patterns. Sources: 2 (Anthropic official). Criteria: introduces new named workflow.
-
-### Queued for Teaching (Session 25)
-
-- **Instinct-Based Learning (Continuous Learning v2)** — Atomic learned behaviors with confidence scoring, hook-based observation (100% reliable), evolution pipeline from instincts to skills/commands/agents. Routed to: skills. Sources: 2. Criteria: introduces new named framework, cross-cutting (skills + context-engineering + tools-and-integrations).
-- **Eval-Driven Development (EDD)** — Evals as unit tests of AI development: define before coding, three grader types (code/model/human), pass@k metrics. Routed to: testing-verification. Sources: 2. Criteria: introduces new named workflow, cross-cutting (testing-verification + workflow-patterns).
-
-### Queued for Teaching (Session 35)
-
-- **Plugin Development Internals** — Agent/command/hook/MCP authoring specs with validation constraints, runtime semantics (no hot-swap, parallel execution, `$CLAUDE_ENV_FILE` persistence), and plugin MCP naming convention. Routed to: skills, tools-and-integrations. Sources: 7 (Anthropic official plugin-dev toolkit). Criteria: cross-cutting (2 KB files), introduces new named patterns (hooks.json format, `.local.md` convention, `updatedInput` tool modification).
-
-### Queued for Teaching (Session 31)
-
-- **Enterprise Agent Architectures (Solo/Parallel/Collaborative)** — Three production-validated patterns from $3M ARR enterprise deployment. Routed to: agent-design, failure-patterns. Sources: 1 (@vasuman). Criteria: introduces new named framework (3 architectures + Dashboard Trap), cross-cutting (2 KB files).
-- **God Parent Pattern** — First documented autonomous agent reproduction via Bitcoin Lightning. Routed to: autonomous-agents. Sources: 1 (@getAlby). Criteria: introduces new named pattern (generational spawning), novel infrastructure stack (LNVPS/Alby/PPQ).
-- **Cowork Context Files Strategy** — "Better files beat better prompts" -- context-first approach with about-me.md, brand-voice.md, working-style.md + _MANIFEST.md for pollution prevention. Routed to: workflow-patterns, context-engineering. Sources: 2 (@heynavtoor). Criteria: cross-cutting (2 KB files), introduces new named pattern (_MANIFEST.md).
