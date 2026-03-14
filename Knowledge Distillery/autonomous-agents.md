@@ -637,7 +637,7 @@ A fully autonomous multi-agent system requires a closed loop to sustain itself w
 - Git as audit log: commit STATE.yaml changes for full task history
 - PMs can spawn sub-subagents for parallel subtasks -- recursive delegation
 
-(see [Closed-Loop Agent Architecture](autonomous-agents.md#closed-loop-agent-architecture))
+(see [Closed-Loop Agent Architecture](autonomous-agents.md#closed-loop-agent-architecture-propose-execute-feedback-retrigger))
 
 *Source: awesome-openclaw-usecases/usecases/autonomous-project-management.md*
 

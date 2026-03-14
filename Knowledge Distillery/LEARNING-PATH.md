@@ -124,7 +124,7 @@ Patterns for daily use. Apply these in almost every task to get consistent, high
 
 - **Why:** Every bug is a future prevention. The cycle: mistake → lesson → skill update → prevention. Applied in real time, in the same session while context is fresh.
 - **Takeaway:** When the AI makes a mistake, update the relevant skill immediately. Do not wait for a post-mortem.
-- **Link:** [skills.md → The Skill Lifecycle](skills.md#the-skill-lifecycle-mistake---lesson---skill---prevention)
+- **Link:** [skills.md → The Skill Lifecycle](skills.md#the-skill-lifecycle-mistake-lesson-skill-prevention)
 - **Prerequisites:** #12 (Skills), #5 (Verify Artifacts)
 - **Depth:** 5 min read
 

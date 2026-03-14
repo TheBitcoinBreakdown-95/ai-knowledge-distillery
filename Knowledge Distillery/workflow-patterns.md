@@ -336,7 +336,7 @@ A systematic bug-fixing workflow that prevents random guessing:
 4. **Fix** -- Choose the safest fix. "What's the safest way to fix this without breaking anything else?"
 5. **Test** -- Verify: original bug is gone, no new bugs introduced, related functionality still works, edge cases handled.
 
-Complementary to the troubleshooting taxonomy in failure-patterns.md (see [failure-patterns.md#troubleshooting-taxonomy](failure-patterns.md#troubleshooting-taxonomy)).
+Complementary to the troubleshooting taxonomy in failure-patterns.md (see [failure-patterns.md#troubleshooting-taxonomy](failure-patterns.md#troubleshooting-taxonomy-three-problem-types)).
 
 *Source: Learning CC/new-project-key-steps.md, Learning CC/notes/module-6-reflection.md*
 

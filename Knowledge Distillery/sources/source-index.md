@@ -906,3 +906,28 @@ These source files contained no extractable content:
 |-------------|-------------------|
 | `Twitter Bookmarks/2026-03-10-trq212-a-bit-more-on-the-technical-details-this-cannot-do-any-tool.md` | /btw side questions: no tools, full context, single turn, prompt cache reuse |
 | `Twitter Bookmarks/2026-03-10-trq212-we-just-added-btw-to-claude-code-use-it-to-have-side-chain-c.md` | /btw announcement tweet |
+
+## Session 61 -- Batch 15
+
+### tools-and-integrations.md
+
+| Source File | What It Contributed |
+|-------------|-------------------|
+| `Twitter Bookmarks/2026-03-03-bcherny-ive-been-using-voice-mode-to-write-much-of-my-cli-code-this.md` | Voice Mode in Claude Code: /voice toggle, rolling out to ~5% of users, reduces friction for exploratory sessions |
+| `Twitter Bookmarks/2026-03-13-bcherny-you-can-now-launch-claude-code-sessions-on-your-laptop-from.md` | Remote Control: mobile session spawning, claude remote-control command, Max plan |
+| `Twitter Bookmarks/Continue local sessions from any device with Remote Control.md` | Remote Control official docs: setup, connection model, security, auto-reconnect, comparison with Claude Code on the web |
+
+### memory-persistence.md
+
+| Source File | What It Contributed |
+|-------------|-------------------|
+| `Twitter Bookmarks/2026-03-12-nurijanian-if-youre-a-pm-who-uses-claude-codecursor-to-build-and-execut.md` | qmd + Obsidian local hybrid search stack: BM25+vector+LLM reranking, 14.5k stars, compounding note effect |
+| `Twitter Bookmarks/2026-03-14-steipete-theres-a-lot-of-cool-stuff-being-built-around-openclaw-if-th.md` | lossless-claw: compaction-resistant memory plugin, in-session continuity vs cross-session retrieval distinction |
+
+### community-insights.md
+
+| Source File | What It Contributed |
+|-------------|-------------------|
+| `Twitter Bookmarks/2026-03-11-NirDiamantAI-claude-code-power-users-youll-want-to-see-this-theres-a-publ.md` | agency-agents: 61-specialist agent library, agent-as-specialist pattern, drop-in ~/.claude/agents/ |
+| `Twitter Bookmarks/2026-03-14-bc1beat-we-built-socialclaw-an-xtwitter-marketing-intelligence-agent.md` | SocialClaw: X/Twitter marketing agent, 7 workflows, $0.08/report micro-priced agentic services |
+| `Twitter Bookmarks/2026-03-13-_pretyflaco-releasing-meetscribe-a-fully-local-open-source-meeting-trans.md` | meetscribe: fully local meeting transcription, WhisperX+pyannote+Ollama, privacy-sensitive pipeline |

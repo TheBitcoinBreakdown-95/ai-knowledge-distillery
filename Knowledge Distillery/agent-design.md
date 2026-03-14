@@ -165,7 +165,7 @@ Agent definitions (`.claude/agents/*.md`) support these YAML frontmatter fields:
 | `skills` | list | Skill names preloaded into agent context at startup (full content injected) |
 | `mcpServers` | list | MCP servers -- server name strings or inline `{name: config}` objects |
 | `hooks` | object | Lifecycle hooks scoped to this subagent: `PreToolUse`, `PostToolUse`, `Stop` (converted to `SubagentStop` at runtime) |
-| `memory` | string | Persistent memory scope: `user`, `project`, or `local` (see [memory-persistence.md](memory-persistence.md#layer-5-agent-memory----per-agent-persistent-knowledge-v2133)) |
+| `memory` | string | Persistent memory scope: `user`, `project`, or `local` (see [memory-persistence.md](memory-persistence.md#layer-5-agent-memory-per-agent-persistent-knowledge-v2133)) |
 | `background` | boolean | `true` to always run as a background task |
 | `isolation` | string | `"worktree"` to run in a temporary git worktree (auto-cleaned if no changes) |
 | `color` | string | CLI output color for visual distinction (e.g., `green`, `magenta`) |

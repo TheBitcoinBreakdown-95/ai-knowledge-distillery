@@ -7,15 +7,31 @@ Process new notes from source directories and integrate them into the Knowledge 
 
 ## Instructions
 
-1. **Read the KB structure** — Read `Knowledge Distillery/README.md` to understand the current KB organization and topic categories.
+1. **Fetch new bookmarks (if configured)** — If you have a bookmark scraping pipeline configured (e.g., Bird CLI for Twitter/X bookmarks), run it first to pull new bookmarks into the source directories before scanning. This ensures newly saved articles are available for processing.
 
-2. **Read the fast-lookup index** — Read `Knowledge Distillery/sources/ingested-paths.txt` (flat file, one path per line). This is the fast index for detecting new files. Do NOT read `ingested-files.md` during scanning — it is the audit log, only written to after processing and read on demand.
+   **Example (Bird CLI for Twitter/X):**
+   ```
+   bird bookmarks --format markdown --output ./Twitter\ Bookmarks/
+   ```
 
-3. **Scan source directories** — Find all `.md` files in your configured source directories. Source directories are any folders outside `Knowledge Distillery/` that contain raw notes, articles, or research material.
+   Skip this step if no bookmark pipeline is configured or if bookmarks are already up to date.
+
+2. **Read the KB structure** — Read `Knowledge Distillery/README.md` to understand the current KB organization and topic categories.
+
+3. **Read the fast-lookup index** — Read `Knowledge Distillery/sources/ingested-paths.txt` (flat file, one path per line, paths relative to repo root using `./` prefix). This is the fast index for detecting new files. Do NOT read `ingested-files.md` during scanning — it is the audit log, only written to after processing and read on demand.
+
+   If `ingested-paths.txt` does not exist, copy from `ingested-paths.txt.template` and start fresh.
+
+4. **Scan source directories** — Find all `.md` files in your configured source directories. Source directories are any folders outside `Knowledge Distillery/` that contain raw notes, articles, or research material.
 
    **Configure your source directories here** (add your own paths):
    ```
-   sources/          # example: drop notes here
+   # Add your source directories below, one per line.
+   # These are folders containing raw notes, articles, bookmarks, or research.
+   # Example:
+   # ./sources/
+   # ./bookmarks/
+   # ./research-notes/
    ```
 
    **Always exclude** from scanning:
@@ -28,9 +44,9 @@ Process new notes from source directories and integrate them into the Knowledge 
    - Any `test/`, `tests/`, `e2e-tests/` directories (test fixtures, not knowledge)
    - Any `.github/` directories (CI config, issue templates)
 
-4. **Detect new files** — Compare scanned files against the fast-lookup index. Any file not in `ingested-paths.txt` is new and needs processing.
+5. **Detect new files** — Compare scanned files against the fast-lookup index. Any file not in `ingested-paths.txt` is new and needs processing.
 
-5. **For each new file:**
+6. **For each new file:**
    a. **Read** the file. If it is empty, a stub (< 5 lines of real content), or a link-only bookmark, skip it and note it in the tracker as "skipped — no content".
 
    a-ii. **Enrich with image descriptions** — Scan the file content for image references (`![alt](path)`). For each reference:
@@ -96,27 +112,27 @@ Process new notes from source directories and integrate them into the Knowledge 
       - Concept appears in 3+ different source files (high convergence)
       - Insight was routed to 2+ different KB files (cross-cutting)
       - Introduces a new named workflow, pattern, or framework
-      - Contradicts existing practice (logged to DISCREPANCIES.md in step 5g)
+      - Contradicts existing practice (logged to DISCREPANCIES.md in step 6g)
 
       Format each candidate as:
       ```
       - **[Concept name]** — [one-line summary]. Routed to: [target files]. Sources: [count]. Criteria: [which of the 4 above].
       ```
 
-6. **Update Concept Index** — If any new `###` sections were added to Recent Additions that introduce concepts not already in the README.md Concept Index table, append new rows to that table. Include the Impact tier (Foundational, Core, Enhancing, or Reference) based on: Foundational if it changes how you think about AI-assisted work; Core if it is a daily-use pattern; Enhancing if it is a power-user optimization; Reference if it is specialized or niche.
+7. **Update Concept Index** — If any new `###` sections were added to Recent Additions that introduce concepts not already in the README.md Concept Index table, append new rows to that table. Include the Impact tier (Foundational, Core, Enhancing, or Reference) based on: Foundational if it changes how you think about AI-assisted work; Core if it is a daily-use pattern; Enhancing if it is a power-user optimization; Reference if it is specialized or niche.
 
-7. **Update provenance:**
+8. **Update provenance:**
    - Add a row to `sources/processing-log.md` for each file processed: `| [date] | [source filename] | [target KB file(s)] | [brief description] |`
    - Add the new source file to `sources/source-index.md` with contribution mappings
    - Add the file to `sources/ingested-files.md` tracker (audit log — append a batch section)
-   - Add the file path to `sources/ingested-paths.txt` (fast-lookup index — one path per line, keep sorted)
+   - Add the file path to `sources/ingested-paths.txt` (fast-lookup index — one path per line, `./` prefix, keep sorted)
 
-8. **Report** — summarize what was processed: how many new files found, how many had content, what insights were extracted, which KB files were updated. Include:
+9. **Report** — summarize what was processed: how many new files found, how many had content, what insights were extracted, which KB files were updated. Include:
    - Count of contradictions logged to DISCREPANCIES.md (if any)
-   - **Dedup skip log** — list every skipped insight with its one-line reason (from step 5d). Format as a table or bullet list at the end of the report so skip decisions are reviewable.
+   - **Dedup skip log** — list every skipped insight with its one-line reason (from step 6d). Format as a table or bullet list at the end of the report so skip decisions are reviewable.
    - **Image Processing Summary** — images found / described / skipped (non-knowledge) / failed. Note if per-file or per-batch cap was reached.
 
-9. **Verify KB health** — After all processing is complete, run these 5 invariant checks:
+10. **Verify KB health** — After all processing is complete, run these 5 invariant checks:
 
     1. **Cross-ref integrity:** Scan all edited files for `(see [x](file.md#anchor))` links. Verify each anchor resolves to a real heading in the target file. Report any broken refs.
     2. **No orphan files:** Verify every topic `.md` in `Knowledge Distillery/` is listed in README.md's index.
@@ -134,4 +150,4 @@ Process new notes from source directories and integrate them into the Knowledge 
 - If a file does not clearly fit any category, add it to `community-insights.md`
 - Paths in `ingested-files.md` are relative to the repo root
 - **Batch limit:** Process at most 20 files per invocation. If more than 20 new files are detected, process the first 20 and report the remainder for the next run
-- **Human spot-check:** After the dedup skip log (step 7), present 5 randomly selected dedup skips and ask the user to confirm they agree with the skip decisions before finalizing
+- **Human spot-check:** After the dedup skip log (step 9), present 5 randomly selected dedup skips and ask the user to confirm they agree with the skip decisions before finalizing

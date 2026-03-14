@@ -1,0 +1,8 @@
+# ingested-paths.txt -- Fast Lookup Index
+#
+# One file path per line, relative to repo root (e.g., ./sources/my-article.md).
+# Used by /process-notes to detect new (un-ingested) files.
+# Lines starting with # are ignored.
+#
+# This file is gitignored. Copy this template to ingested-paths.txt and
+# populate it as you process source files.
