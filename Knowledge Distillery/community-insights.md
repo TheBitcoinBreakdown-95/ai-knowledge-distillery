@@ -879,3 +879,36 @@ Actionable framework for building and marketing consumer apps with AI tools:
 | @moltlaunch | `Twitter Bookmarks/2026-03-09-moltlaunch-introducing-cashclaw-a-brand-new-agent-framework-inspired-by.md` | CashClaw: autonomous revenue agent framework |
 | @simplifyinAI | `Twitter Bookmarks/2026-03-09-simplifyinAI-breaking-the-biggest-bottleneck-for-ai-agents-just-got-solve.md` | PinchTab: lightweight browser control for agents |
 
+---
+
+## Recent Additions
+
+### agency-agents: 61-Agent Specialist Library (2026-03-11)
+- **Repo:** github.com/msitarzewski/agency-agents -- drop-in agent library for Claude Code (also works with Cursor, Windsurf, Aider, Gemini CLI)
+- 61 specialized agents covering engineering, design, marketing, product, testing, and more; each with defined personality, workflows, and expected deliverables
+- Install: copy desired agent files to `~/.claude/agents/`; activate by name rather than prompting a generic assistant
+- Example specialists: security engineer, growth hacker, reality checker, whimsy injector
+- Illustrates the agent-as-specialist pattern: narrow domain + defined persona outperforms a general-purpose prompt
+
+(see [agent-design.md](agent-design.md#personas) for the Personas / imaginary colleagues pattern)
+
+*Source: Twitter Bookmarks/2026-03-11-NirDiamantAI-claude-code-power-users-youll-want-to-see-this-theres-a-publ.md (@NirDiamantAI)*
+
+### SocialClaw: Marketing Intelligence Agent on Claude Code (2026-03-14)
+- **Repo:** github.com/BlockRunAI/socialclaw -- X/Twitter marketing agent built on Claude Code; no per-user API keys required
+- 7 workflows: trend detection, audience segmentation by influence tier, KOL discovery, daily growth brief with 3 actions, and more
+- Cost: $0.08 per report (paid in USDC); demonstrates micro-priced agentic services
+- Trend detection example: "Anthropic has 115M views today" surfaced automatically without manual search
+
+*Source: Twitter Bookmarks/2026-03-14-bc1beat-we-built-socialclaw-an-xtwitter-marketing-intelligence-agent.md (@bc1beat)*
+
+### meetscribe: Fully Local Meeting Transcription (2026-03-13)
+- **Repo:** github.com/pretyflaco/meetscribe -- local open-source meeting transcription; no cloud, no subscriptions
+- Stack: records any meeting app -> WhisperX for transcription -> pyannote for speaker diarization -> Ollama for AI summary -> PDF output
+- Runs entirely on local GPU; all data stays on device
+- Demonstrates the fully-local AI pipeline for privacy-sensitive workflows (meetings, sensitive discussions)
+
+(see [tools-and-integrations.md](tools-and-integrations.md#local-models-and-offline-use) for related local AI tooling)
+
+*Source: Twitter Bookmarks/2026-03-13-_pretyflaco-releasing-meetscribe-a-fully-local-open-source-meeting-trans.md (@_pretyflaco)*
+

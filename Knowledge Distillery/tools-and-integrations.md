@@ -905,4 +905,29 @@ Claude Code offers 38 settings and 84 environment variables (use the `"env"` fie
 - **Official Docs:** [code.claude.com/docs](https://code.claude.com/docs)
 - **Best Practices:** [anthropic.com/engineering/claude-code-best-practices](https://www.anthropic.com/engineering/claude-code-best-practices)
 
+---
+
+## Recent Additions
+
+### Voice Mode in Claude Code (2026-03-03)
+- Native voice input rolling out in Claude Code; `/voice` to toggle on
+- Rolling out to ~5% of users initially, ramping over coming weeks; access shown on welcome screen
+- Practical use: dictating CLI code and conversational prompts without typing
+- Reduces friction for exploratory sessions where speaking is faster than typing
+
+*Source: Twitter Bookmarks/2026-03-03-bcherny-ive-been-using-voice-mode-to-write-much-of-my-cli-code-this.md (@bcherny, @trq212)*
+
+### Remote Control: Mobile Session Spawning (2026-03-13)
+- `claude remote-control` starts a local session that can be controlled from phone, tablet, or any browser via claude.ai/code or the Claude mobile app
+- Session runs entirely on your machine -- filesystem, MCP servers, tools, and project config all stay available; web/mobile is just a window into the local process
+- Available on Max plan (>=2.1.74); Pro coming soon; not yet on Team/Enterprise API keys
+- Connection: outbound HTTPS only, no inbound ports; uses Anthropic API as relay with short-lived credentials over TLS
+- Auto-reconnect: if laptop sleeps or network drops, the session reconnects when the machine comes back online (timeout after ~10 minutes of sustained outage)
+- Enable for all sessions via `/config` > "Enable Remote Control for all sessions" (default: off)
+- Flags: `--verbose` for detailed logs, `--sandbox`/`--no-sandbox` for filesystem isolation
+- Distinct from Claude Code on the web: Remote Control = your machine + remote UI; Claude Code on the web = Anthropic cloud infrastructure
+
+(see [tools-and-integrations.md#voice-mode-in-claude-code](#voice-mode-in-claude-code) for another recent CLI interaction mode)
+
+*Source: Twitter Bookmarks/2026-03-13-bcherny-you-can-now-launch-claude-code-sessions-on-your-laptop-from.md (@bcherny, @noahzweben); Continue local sessions from any device with Remote Control.md (Claude Code Docs)*
 

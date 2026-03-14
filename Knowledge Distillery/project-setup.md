@@ -84,7 +84,7 @@ Place `.mcp.json` at project root. Use `--mcp-debug` to troubleshoot. Document M
 - Key lesson: the gap between "download this repo" and "it actually runs" involves BIOS settings, Docker networking, port configuration, and model pulling -- none in most README instructions
 - Docker Compose as deployment unit: services in `docker-compose.yml`, env vars pointing to local Ollama (`http://host.docker.internal:11434`), persistent volumes
 - Model setup is separate from app setup: `ollama pull [model]` + configure app to reference model names
-- Same skills needed for MCP server configuration and local tool integration (see [project-setup.md](#step-4-set-up-mcp-servers))
+- Same skills needed for MCP server configuration and local tool integration (see [project-setup.md](#step-4-set-up-mcp-servers-mcpjson))
 *Source: Old Notes/Open Notebook.md*
 
 ### Step 5: Create First Custom Commands (.claude/commands/)

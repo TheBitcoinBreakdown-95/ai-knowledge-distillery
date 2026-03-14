@@ -8,7 +8,7 @@ The act of naming a failure *during* the work -- not after -- is what turns a su
 
 This is not reflection. Reflection happens after. This happens during -- you are building and watching yourself build at the same time, and the watching changes the building. The process is a product that evolves through use, not through design.
 
-The fix protocol is always the same: **Catch -> Name -> Update Skill -> Prevent Recurrence** (see [skills.md#the-skill-lifecycle-mistake---lesson---skill---prevention](skills.md#the-skill-lifecycle-mistake---lesson---skill---prevention)).
+The fix protocol is always the same: **Catch -> Name -> Update Skill -> Prevent Recurrence** (see [skills.md#the-skill-lifecycle-mistake-lesson-skill-prevention](skills.md#the-skill-lifecycle-mistake-lesson-skill-prevention)).
 
 ---
 

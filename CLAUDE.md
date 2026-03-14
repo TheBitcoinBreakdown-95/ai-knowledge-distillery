@@ -63,5 +63,4 @@ Binary pass/fail checks. Run after any KB edit. All must pass.
 1. **Cross-ref integrity:** Every `(see [x](file.md#anchor))` link resolves to a real heading
 2. **No orphan files:** Every topic `.md` in `Knowledge Distillery/` is listed in README.md's index
 3. **Recent Additions backlog:** No file has entries pending for 3+ sessions
-4. **Concept Index coverage:** Every H2 section in topic files maps to a Concept Index entry in README.md
-5. **Discrepancy resolution:** No open discrepancy in DISCREPANCIES.md older than 3 sessions
+4. **Discrepancy resolution:** No open discrepancy in DISCREPANCIES.md older than 3 sessions

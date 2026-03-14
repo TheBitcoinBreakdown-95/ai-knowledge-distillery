@@ -380,7 +380,7 @@ Skills benefit from semantic versioning and changelogs to track their evolution 
 | v2.2.0 | Quick mode, `--from`, `--quality`, cost display | Cost awareness, noise reduction, UX polish |
 | v2.3.0 | Purged stale LLM training data, security docs | **Critical:** LLMs hallucinate old API pricing -- skills must contain accurate reference data |
 
-Each version encodes a lesson. The changelog is a compressed history of mistakes and refinements -- a skill-level equivalent of the Mistake -> Lesson -> Skill -> Prevention cycle (see [The Skill Lifecycle](#the-skill-lifecycle-mistake---lesson---skill---prevention)).
+Each version encodes a lesson. The changelog is a compressed history of mistakes and refinements -- a skill-level equivalent of the Mistake -> Lesson -> Skill -> Prevention cycle (see [The Skill Lifecycle](#the-skill-lifecycle-mistake-lesson-skill-prevention)).
 
 ### Designing Scripts for Agentic Use
 
@@ -416,7 +416,7 @@ Pin versions in all cases. Use `uv lock --script` for full reproducibility in Py
 **One-off commands (no scripts/ directory needed):**
 When an existing package does what you need, reference it directly in SKILL.md using auto-resolving runners: `uvx`, `npx`, `bunx`, `deno run`, `go run`. Pin versions (e.g., `npx eslint@9.0.0`). Move complex multi-flag commands into `scripts/` for reliability.
 
-(see [The Skill Lifecycle](#the-skill-lifecycle-mistake---lesson---skill---prevention) for when to promote prompt-only instructions to scripts)
+(see [The Skill Lifecycle](#the-skill-lifecycle-mistake-lesson-skill-prevention) for when to promote prompt-only instructions to scripts)
 
 ### Skill Creation Methodology: Eval-Driven Iteration Loop
 
