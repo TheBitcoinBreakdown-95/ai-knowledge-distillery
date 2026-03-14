@@ -727,3 +727,19 @@ Confidence increases with repeated observation, decreases on user correction or 
 
 (see [context-engineering.md](context-engineering.md#dynamic-system-prompt-injection-via-cli-aliases) for hook-based learning rationale)
 
+---
+
+## Recent Additions
+
+### Skill Graphs: Networked Skill Architectures (2026-02-18)
+- A **skill graph** is a network of skill files connected via wikilinks, where each file is one complete concept/technique and links carry meaning because they're woven into prose
+- Progression: index file (entry point) -> YAML frontmatter descriptions (scannable without full reads) -> wikilinks in prose (traversable paths) -> full file content. Most agent decisions happen before reading a single full file
+- **Maps of Content (MOCs)** organize sub-clusters when the graph grows beyond flat navigation
+- Key primitives: wikilinks as prose (not just references), YAML frontmatter with descriptions, MOCs for sub-topics, recursive linking as deep as the domain requires
+- Use case: domains too complex for a single skill file -- therapy (CBT, attachment theory, emotional regulation), trading (risk, psychology, position sizing), legal (contracts, compliance, precedents)
+- "Skills are context engineering -- curated knowledge injected where it matters. Skill graphs are the next step: the agent navigates a knowledge structure, pulling in exactly what the current situation requires"
+
+(see [context-engineering.md](context-engineering.md#progressive-disclosure-summary-first-details-on-demand) for the progressive disclosure pattern that skill graphs apply recursively)
+
+*Source: Twitter Bookmarks/2026-02-18-arscontexta-httpstcoxmyso3mc8f.md (@arscontexta)*
+

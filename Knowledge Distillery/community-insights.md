@@ -890,7 +890,7 @@ Actionable framework for building and marketing consumer apps with AI tools:
 - Example specialists: security engineer, growth hacker, reality checker, whimsy injector
 - Illustrates the agent-as-specialist pattern: narrow domain + defined persona outperforms a general-purpose prompt
 
-(see [agent-design.md](agent-design.md#personas) for the Personas / imaginary colleagues pattern)
+(see [agent-design.md](agent-design.md#personas-imaginary-colleagues-that-catch-what-you-miss) for the Personas / imaginary colleagues pattern)
 
 *Source: Twitter Bookmarks/2026-03-11-NirDiamantAI-claude-code-power-users-youll-want-to-see-this-theres-a-publ.md (@NirDiamantAI)*
 
@@ -908,7 +908,15 @@ Actionable framework for building and marketing consumer apps with AI tools:
 - Runs entirely on local GPU; all data stays on device
 - Demonstrates the fully-local AI pipeline for privacy-sensitive workflows (meetings, sensitive discussions)
 
-(see [tools-and-integrations.md](tools-and-integrations.md#local-models-and-offline-use) for related local AI tooling)
+(see [autonomous-agents.md](autonomous-agents.md#local-inference-runtimes-ollama-and-vllm) for related local AI tooling)
 
 *Source: Twitter Bookmarks/2026-03-13-_pretyflaco-releasing-meetscribe-a-fully-local-open-source-meeting-trans.md (@_pretyflaco)*
 
+### GitNexus: Browser-Only Repo Knowledge Graph (2026-02-25)
+- Converts any GitHub repo into an interactive knowledge graph with AI chat, entirely in-browser (no backend, no API calls with your code)
+- 4-pass analysis: (1) file structure mapping, (2) AST parsing via Tree-sitter, (3) import/dependency resolution, (4) full function call graph construction
+- Chat interface for natural language queries: "How does authentication work?", "What calls this function?", "Show classes that inherit from BaseClass"
+- Zero server, zero cost, open source; API keys stored locally, never transmitted
+- Distinct from Google CodeWiki (which generates interactive guides, not knowledge graphs)
+
+*Source: Twitter Bookmarks/2026-02-25-hasantoxr-breaking-someone-just-built-a-tool-that-turns-any-github-rep.md (@hasantoxr)*
