@@ -36,7 +36,7 @@ Major architectural choices and the reasoning behind them. Each entry follows th
   - Keyword search over raw notes
   - The current approach: pre-synthesized topic files
 - **Decision:** Pre-synthesize into topic files. No retrieval layer.
-- **Rationale:** RAG returns 5 chunks about a concept; synthesis gives 1 unified answer. At ~160 source files compressed to 15 topic files, the entire KB fits in context — retrieval adds complexity without benefit. Synthesis also catches contradictions and forces dedup, which RAG cannot. Revisit if scale exceeds context limits (see Phase 4.1 in OPTIMIZATION-PLAN.md).
+- **Rationale:** RAG returns 5 chunks about a concept; synthesis gives 1 unified answer. At ~160 source files compressed to 12 topic files, the entire KB fits in context — retrieval adds complexity without benefit. Synthesis also catches contradictions and forces dedup, which RAG cannot. Revisit if scale exceeds context limits.
 
 ---
 
@@ -60,7 +60,7 @@ Major architectural choices and the reasoning behind them. Each entry follows th
   - Consolidate on a fixed schedule (weekly)
   - Threshold-based with a staleness backstop
 - **Decision:** Consolidate when a file has 3+ Recent Additions entries. Backstop: merge individually after 3 sessions regardless of count.
-- **Rationale:** 3 entries provides enough material to synthesize coherently rather than just appending. The 3-session stale rule (added Session 14, from failure-patterns.md > State Corruption) prevents orphaned entries that never reach threshold from accumulating indefinitely.
+- **Rationale:** 3 entries provides enough material to synthesize coherently rather than just appending. The stale rule (from failure-patterns.md > State Corruption) prevents orphaned entries that never reach threshold from accumulating indefinitely.
 
 ---
 
@@ -75,21 +75,21 @@ Major architectural choices and the reasoning behind them. Each entry follows th
 
 ---
 
-## Decision: Publish the System, Not the Content
+## Decision: Publish the Synthesized KB (Not Just the System)
 
-- **Context:** Phase 6 planning — what goes into the public repo?
+- **Context:** When planning the public repo — what goes in? Originally planned to publish only the system (commands, templates, empty scaffold). Revisited after the KB reached 12 verified topic files.
 - **Alternatives Considered:**
-  - Publish everything (notes + synthesized KB + commands)
+  - Publish everything (raw notes + synthesized KB + commands)
   - Publish only commands and templates (the system)
-  - Publish a curated "starter KB" alongside the system
-- **Decision:** Publish the system first (commands, templates, empty KB scaffold). Personal content stays private. Verified starter content may follow as Phase 6.2B.
-- **Rationale:** The value is the methodology, not the personal notes. Users fork and build their own KB from their own sources. Publishing raw notes would expose personal context. Publishing synthesized content without verification could spread errors. System-first also means the repo is immediately useful without requiring our specific domain knowledge.
+  - Publish the synthesized KB + system, keep raw notes private
+- **Decision:** Publish the synthesized KB (12 topic files, process docs, decisions, learning path) plus the system (commands, MCP server, templates). Raw source notes stay private.
+- **Rationale:** The synthesized KB is the proof that the methodology works — an empty scaffold is a claim, a populated KB is evidence. The 12 topic files contain no personal context (they synthesize across sources into general best practices). Raw notes stay private because they contain personal context and third-party content. The system remains forkable — users can replace our topic files with their own domain knowledge.
 
 ---
 
 ## Decision: "Knowledge Distillery" Name
 
-- **Context:** Session 3 — the project needed a name beyond "Knowledge Base."
+- **Context:** The project needed a name beyond "Knowledge Base."
 - **Alternatives Considered:** Knowledge Base, Knowledge Graph, Knowledge Engine, Knowledge Distillery
 - **Decision:** Knowledge Distillery.
 - **Rationale:** "Base" is generic and implies storage. "Distillery" captures the core value proposition — raw inputs are refined into concentrated, purified output. The metaphor extends naturally: sources are ingredients, ingestion is fermentation, synthesis is distillation, the output is spirit (concentrated essence).
@@ -98,7 +98,7 @@ Major architectural choices and the reasoning behind them. Each entry follows th
 
 ## Decision: Thin Skills Pattern for Commands
 
-- **Context:** Self-audit (Session 12) found two commands exceeding 200 lines — audit.md (225 lines) and transition.md (226 lines). The KB's own Thin Skills Principle says good skills are ~40 lines.
+- **Context:** Self-audit found two commands exceeding 200 lines — audit.md (225 lines) and transition.md (226 lines). The KB's own Thin Skills Principle says good skills are ~40 lines.
 - **Alternatives Considered:**
   - Leave as-is (they work)
   - Split into multiple smaller commands
@@ -110,7 +110,7 @@ Major architectural choices and the reasoning behind them. Each entry follows th
 
 ## Decision: Concept Index with Impact Tiers
 
-- **Context:** Phase 7 (teaching layer) — the KB synthesizes well for AI agents but the human needs a filtered view of what matters most.
+- **Context:** The KB synthesizes well for AI agents but the human needs a filtered view of what matters most.
 - **Alternatives Considered:**
   - Separate "highlights" file with curated summaries
   - Tags on each section header (e.g., `[CORE]`, `[ADVANCED]`)
@@ -122,65 +122,65 @@ Major architectural choices and the reasoning behind them. Each entry follows th
 
 ## Decision: Auditable Dedup (Log Skip Reasons)
 
-- **Context:** Self-audit (Session 12, finding #6) identified plausible echo risk in dedup — when `/process-notes` skips an item as "duplicate," there's no way to verify the skip was correct.
+- **Context:** Self-audit identified plausible echo risk in dedup — when `/process-notes` skips an item as "duplicate," there's no way to verify the skip was correct.
 - **Alternatives Considered:**
   - Trust the dedup (status quo)
   - Full diff log of every comparison
   - One-line skip reasons in the processing report
 - **Decision:** One-line skip reasons logged in the processing report (step 8) for every skipped item.
-- **Rationale:** Full diffs would be noisy and rarely reviewed. No logging means bad dedup decisions are invisible — a textbook plausible echo. One-line reasons (e.g., "Skipped 'prompt caching' — duplicates existing section 'Prompt Cache Architecture'") are lightweight to produce and easy to spot-check. Added Session 15.
+- **Rationale:** Full diffs would be noisy and rarely reviewed. No logging means bad dedup decisions are invisible — a textbook plausible echo. One-line reasons (e.g., "Skipped 'prompt caching' — duplicates existing section 'Prompt Cache Architecture'") are lightweight to produce and easy to spot-check.
 
 ---
 
 ## Decision: Split skills-and-tools.md into Two Files (11→12 Topic Files)
 
-- **Context:** Session 18 architecture review found skills-and-tools.md had grown to 993 lines — the largest file by far, covering two distinct domains (skill design vs tool infrastructure).
+- **Context:** Architecture review found skills-and-tools.md had grown to 993 lines — the largest file by far, covering two distinct domains (skill design vs tool infrastructure).
 - **Alternatives Considered:**
   - Keep as one file and rely on internal navigation
   - Split into 3 files (skills, tools, integrations separately)
   - Move only the overflowing sections to other existing files
 - **Decision:** Split into `skills.md` (501 lines: skill theory, design, examples, slash commands) and `tools-and-integrations.md` (492 lines: hooks, MCP, SDK, CI/CD, plugins, compound effect). Topic count goes from 11 to 12.
-- **Rationale:** Two files keeps each under 500 lines while maintaining coherent themes. The cut is clean — skills are about *what to encode*, tools are about *infrastructure*. Three files would fragment the compound effect section. Moving sections to existing files would make those files overloaded instead. Added Session 19.
+- **Rationale:** Two files keeps each under 500 lines while maintaining coherent themes. The cut is clean — skills are about *what to encode*, tools are about *infrastructure*. Three files would fragment the compound effect section. Moving sections to existing files would make those files overloaded instead.
 
 ---
 
 ## Decision: Relocate Misplaced context-engineering.md Sections
 
-- **Context:** Session 18 review identified 4 sections in context-engineering.md that were about tools/agents/setup, not context strategy: SDK architecture, Agent Teams, Tasks System, Running Locally.
+- **Context:** Architecture review identified 4 sections in context-engineering.md that were about tools/agents/setup, not context strategy: SDK architecture, Agent Teams, Tasks System, Running Locally.
 - **Alternatives Considered:**
   - Leave them (they were already there)
   - Move to a new "miscellaneous" file
   - Distribute to topically correct existing files
 - **Decision:** Move each section to its natural home — SDK to tools-and-integrations.md, Agent Teams + Tasks to agent-design.md, Running Locally to project-setup.md. context-engineering.md dropped from 556 to 472 lines.
-- **Rationale:** Every section had an obvious better home. Leaving them created false expectations — readers looking for SDK docs in context-engineering.md, or Agent Teams scattered across two files. The agent-design.md Agent Teams section already said "see context-engineering.md for basics" — merging eliminates the indirection. Added Session 19.
+- **Rationale:** Every section had an obvious better home. Leaving them created false expectations — readers looking for SDK docs in context-engineering.md, or Agent Teams scattered across two files. The agent-design.md Agent Teams section already said "see context-engineering.md for basics" — merging eliminates the indirection.
 
 ---
 
 ## Decision: Batch Limits + Human Spot-Check on /process-notes
 
-- **Context:** Session 16 ingested ~105 files in a single run with ~175 dedup decisions, all unreviewed. Session 18 review flagged this as a quality gate gap.
+- **Context:** A large ingestion batch (~105 files, ~175 dedup decisions, all unreviewed) revealed a quality gate gap.
 - **Alternatives Considered:**
   - No limits (status quo)
   - Hard human review of every dedup decision
   - Batch cap + random sample review
 - **Decision:** Cap at 20 files per invocation. After processing, present 5 randomly selected dedup skips for human confirmation before finalizing.
-- **Rationale:** 20 files is enough for a substantial session without overwhelming review. Reviewing every decision (175 in Session 16) is impractical. Random sampling catches systematic errors (wrong dedup criteria) without requiring exhaustive review. The 5-skip sample is a proportional check — enough to detect patterns, fast enough to not slow the workflow. Added Session 19.
+- **Rationale:** 20 files is enough for a substantial session without overwhelming review. Reviewing every decision in a large batch is impractical. Random sampling catches systematic errors (wrong dedup criteria) without requiring exhaustive review. The 5-skip sample is a proportional check — enough to detect patterns, fast enough to not slow the workflow.
 
 ---
 
 ## Decision: Raise Consolidation Threshold from 3 to 5
 
-- **Context:** Session 18 review found that 3-entry consolidation batches weren't producing meaningful quality improvements — the overhead of reading and reorganizing the file was barely justified for 3 entries.
+- **Context:** Experience showed that 3-entry consolidation batches weren't producing meaningful quality improvements — the overhead of reading and reorganizing the file was barely justified for 3 entries.
 - **Alternatives Considered:**
   - Keep at 3 (status quo)
   - Raise to 10 (aggressive batching)
   - Remove threshold entirely (always consolidate)
 - **Decision:** Raise to 5, keep the 3-session stale backstop.
-- **Rationale:** 5 entries give enough critical mass for intelligent placement — the consolidator can see patterns in where entries cluster. 10 would delay too long, risking large backlog issues like Session 16. The stale backstop (3+ sessions) ensures even 1-2 entries don't sit forever. Added Session 19.
+- **Rationale:** 5 entries give enough critical mass for intelligent placement — the consolidator can see patterns in where entries cluster. 10 would delay too long, risking large backlog issues. The stale backstop (3+ sessions) ensures even 1-2 entries don't sit forever.
 
 ---
 
-## Validation: Knowledge Layer Architecture (Session 30)
+## Validation: Knowledge Layer Architecture
 
 A deep research report on Claude Code knowledge layers (`deep-research-report-claudecodeknowledgelayer.md`) independently arrived at many of the same architectural conclusions we built. This section documents where our decisions were validated and where we went beyond the report's recommendations.
 
@@ -193,22 +193,22 @@ The report's central thesis is "don't build RAG, use the primitives." Our approa
 The report warns heavily about CLAUDE.md bloat — "overly long CLAUDE.md causes instruction loss." Our AI Notes CLAUDE.md contains only: commands, structure, conventions, don't rules, invariants. No prose walls. The report's empirical study of 253 public CLAUDE.md files found the same pattern we follow — practical operational guidance over abstract principles.
 
 **Thin skills with templates (Decision: Thin Skills Pattern)**
-The report recommends skills as "retrieval wrappers" with supporting files for large references. We implemented this pattern in Session 12 (Phase 9.2c-d) — extracting check tables and step details to `.claude/commands/templates/`, keeping commands as thin orchestrators. The report independently validates this as "cleanest way to encode checklists and debugging playbooks without bloating every session."
+The report recommends skills as "retrieval wrappers" with supporting files for large references. We implemented this pattern — extracting check tables and step details to `.claude/commands/templates/`, keeping commands as thin orchestrators. The report independently validates this as "cleanest way to encode checklists and debugging playbooks without bloating every session."
 
-**Auto memory index + topic files (Decision: Phase 15.1)**
-The report describes the exact pattern we implemented: "`MEMORY.md` acts as a concise always-loaded index (first 200 lines), with topic files read on demand." Our Phase 15.1 restructured MEMORY.md from 131 lines of project detail to a ~45-line index with pointers to 3 detail files (`openclaw-course.md`, `freedomlab.md`, `knowledge-distillery.md`).
+**Auto memory index + topic files**
+The report describes the exact pattern we implemented: "`MEMORY.md` acts as a concise always-loaded index (first 200 lines), with topic files read on demand." We restructured MEMORY.md from 131 lines of project detail to a ~45-line index with pointers to detail files.
 
-**Path-scoped rules (Decision: Phase 15.4)**
-The report calls path-scoped rules "the single best noise reduction lever for monorepos." Phase 15.4 created `.claude/rules/kb-editing.md` scoped to `Knowledge Distillery/**/*.md` with 6 editing constraints. The report validates this as reducing token cost and instruction noise.
+**Path-scoped rules**
+The report calls path-scoped rules "the single best noise reduction lever for monorepos." We created `.claude/rules/kb-editing.md` scoped to `Knowledge Distillery/**/*.md` with 6 editing constraints. The report validates this as reducing token cost and instruction noise.
 
 **Staged implementation (Decision: Optimization Plan structure)**
 The report recommends "stage-gated, anti-overengineering" implementation with explicit "stop signs." Our 15-phase optimization plan with dependencies, status tracking, and "parked" items for premature ideas matches this philosophy exactly.
 
-**Subagents for context isolation (Decision: Phase 15.3)**
-The report says "use subagents for investigation so verbose exploration doesn't pollute the main context." Phase 15.3 defined 3 specialized agents (kb-researcher, kb-processor, verify-claims) with scoped tool access — read-only for researchers, full access for processors.
+**Subagents for context isolation**
+The report says "use subagents for investigation so verbose exploration doesn't pollute the main context." We defined 3 specialized agents (kb-researcher, kb-processor, verify-claims) with scoped tool access — read-only for researchers, full access for processors.
 
-**LanceDB hybrid retrieval (Decision: Phase 11)**
-The report's Stage 2 recommendation — "hybrid BM25+vector, section-level chunks, MCP server" — is exactly what Phase 11 specifies. Our research (Session 23) independently chose LanceDB for the same reasons the report cites: built-in hybrid search, embedded (no server), section-level retrieval. The report also validates our CAG Note: at ~37K tokens, full context loading beats retrieval on accuracy.
+**LanceDB hybrid retrieval**
+The report's Stage 2 recommendation — "hybrid BM25+vector, section-level chunks, MCP server" — matches our implementation exactly. We independently chose LanceDB for the same reasons the report cites: built-in hybrid search, embedded (no server), section-level retrieval. The report also validates our CAG Note: at ~37K tokens, full context loading beats retrieval on accuracy.
 
 ### Where We Exceed the Report
 
@@ -265,13 +265,13 @@ The report's Stage 2 recommendation — "hybrid BM25+vector, section-level chunk
 
 ---
 
-## Decision: Browser Console Export for Bookmarks (Not Bird CLI or API)
+## Decision: Bird CLI for Bookmark Export
 
-- **Context:** Bird CLI auth broken by Chrome 145 cookie encryption. Manual DevTools cookie extraction was a fragile workaround.
+- **Context:** Needed a reliable way to export Twitter/X bookmarks as source material for the Knowledge Distillery pipeline.
 - **Alternatives Considered:**
-  - (a) Keep Bird CLI + manual cookie extraction
-  - (b) Browser console export (Siftly/gd3kr approach)
+  - (a) Bird CLI (Go-based CLI tool, exports bookmarks as markdown)
+  - (b) Browser console export (Siftly/gd3kr approach -- JS script in DevTools)
   - (c) Twitter API v2 (requires developer account)
   - (d) Third-party export tools (twitter-web-exporter, Chrome extensions)
-- **Decision:** Option (b) -- browser console script (`export_bookmarks.js`) + Python parser (`parse_bookmarks.py`).
-- **Rationale:** Runs in already-authenticated browser session, zero auth overhead. Three proven open-source scripts validated the pattern. fxtwitter API provides full text enrichment without auth. Output format matches Bird CLI for pipeline compatibility. Parser supports `--skip-existing` for incremental runs.
+- **Decision:** Option (a) -- Bird CLI.
+- **Rationale:** Purpose-built tool for exactly this use case. Clean markdown output integrates directly with the ingestion pipeline. CLI-native workflow (no browser interaction required). Actively maintained. Browser console export was evaluated as a fallback but adds friction (manual copy-paste from DevTools) and fragility (script breaks on DOM changes).

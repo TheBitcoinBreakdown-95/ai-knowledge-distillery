@@ -10,7 +10,7 @@ All content moves through three layers as it matures:
 
 | Layer | Location | What Happens | Modified By |
 |-------|----------|--------------|-------------|
-| **1. Raw Sources** | Source directories (e.g., `Old Notes/`, `Twitter Bookmarks/`, `Claude Code/`) | Original files — untouched, never moved or deleted | Human (drops files in) |
+| **1. Raw Sources** | Source directories (any folders you configure as inputs) | Original files — untouched, never moved or deleted | Human (drops files in) |
 | **2. Recent Additions** | `## Recent Additions` at the bottom of each topic file | Extracted, classified, deduplicated insights staged for review | `/process-notes` |
 | **3. Main Body** | Primary sections of each topic file | Fully integrated, reads as one coherent document | `/consolidate-kb` |
 
@@ -18,7 +18,7 @@ All content moves through three layers as it matures:
 
 ---
 
-## The 11 Topic Files
+## The 12 Topic Files
 
 Every insight gets routed to exactly one of these during ingestion:
 
@@ -37,7 +37,7 @@ Every insight gets routed to exactly one of these during ingestion:
 | `autonomous-agents.md` | OpenClaw, brain/muscles, local models, security |
 | `community-insights.md` | Curated tips, tools, tech stacks from threads/posts |
 
-**Why 12?** See [DECISIONS.md](DECISIONS.md#decision-11-topic-files-not-fewer-not-more). `skills-and-tools.md` was split into two files (Session 19) because it exceeded 970 lines — a monolith by KB standards. The Concept Index in README.md provides cross-file discovery.
+**Why 12?** See [DECISIONS.md](DECISIONS.md#decision-11-topic-files-not-fewer-not-more). `skills-and-tools.md` was split into two files because it exceeded 970 lines — a monolith by KB standards. The Concept Index in README.md provides cross-file discovery.
 
 ---
 
@@ -51,11 +51,11 @@ Every insight gets routed to exactly one of these during ingestion:
 
 1. **Read KB structure** — loads README.md to understand topic categories
 2. **Read tracker** — loads `sources/ingested-files.md` (list of all previously processed files)
-3. **Scan source directories** — finds all `.md` files in 11 configured directories, excluding code files, images, and the Distillery itself
+3. **Scan source directories** — finds all `.md` files in configured source directories, excluding code files, images, and the Distillery itself
 4. **Diff** — compares scanned files against the tracker. Anything not in the tracker is new.
 5. **For each new file:**
    - **a. Read it.** Skip if empty, stub (< 5 lines), or link-only bookmark. Log as skipped.
-   - **b. Classify** — determine which of the 11 topic files the content maps to
+   - **b. Classify** — determine which of the 12 topic files the content maps to
    - **c. Extract** — pull out 3-10 bullet points of key insights (synthesized, not copy-pasted)
    - **d. Deduplicate** — check if the insight already exists in the target file. If duplicate, skip it and **log the reason** (e.g., `Skipped "prompt caching" — duplicates existing section "Prompt Cache Architecture"`). This makes every skip auditable.
    - **e. Append** — add new insights to `## Recent Additions` at the bottom of the target file, formatted with title, date, bullets, and source attribution
@@ -116,7 +116,7 @@ Every insight gets routed to exactly one of these during ingestion:
 3. **Broken cross-references** — validates all `(see [concept](file.md#section))` links resolve
 4. **Open discrepancies** — count of unresolved items in DISCREPANCIES.md
 5. **KB size** — line count per file and total
-6. **Optimization progress** — pending items per phase from OPTIMIZATION-PLAN.md
+6. **KB size trends** — total line count and growth since last check
 
 ---
 
@@ -150,7 +150,7 @@ Every insight gets routed to exactly one of these during ingestion:
 4. Run all checks: PASS / WARN / FAIL / N/A
 5. Compile report: summary scorecard, detailed findings for WARN/FAIL, top 3 recommendations
 
-**Current limitation (Phase 9.3a):** Checks file existence (does CLAUDE.md exist?) but not substantive adherence (does it follow WHAT/WHY/HOW framing? are invariants defined?). Redesign is pending.
+**Note:** The audit checks both structural presence (does CLAUDE.md exist?) and substantive adherence (does it follow quality criteria? are invariants defined?).
 
 ---
 
@@ -223,21 +223,12 @@ Every time `/process-notes` skips an insight as a duplicate, it logs a one-line 
 
 ---
 
-## Current State
-
-- **Scale:** ~160 source files compressed to 11 topic files (~6,500+ lines)
-- **Optimization:** Phases 1-3, 7, 8 complete. Phase 9.1-9.2 complete. Pending: 9.3a (redesign /audit), consolidation of 59 Recent Additions.
-- **Full history:** SESSION-HISTORY.md (sessions 9-19) + SESSION-ARCHIVE.md (Sessions 1-8)
-- **Tracking:** OPTIMIZATION-PLAN.md (living optimization tracker with per-session notes)
-
----
-
 ## Worked Example: Processing a New Note
 
-Say you drop a file `New-Prompting-Tips.md` into `AI Notes/Threads/`:
+Say you drop a file `New-Prompting-Tips.md` into one of your source directories:
 
 1. **You run `/process-notes`**
-2. The command scans `Threads/` and finds `New-Prompting-Tips.md` is not in `ingested-files.md`
+2. The command scans the source directory and finds `New-Prompting-Tips.md` is not in `ingested-files.md`
 3. It reads the file. The file has 20 lines of real content — not a stub.
 4. It classifies the content: most tips are about prompt structure → routes to `prompt-engineering.md`
 5. It extracts 5 key insights as concise bullets
@@ -252,7 +243,7 @@ Say you drop a file `New-Prompting-Tips.md` into `AI Notes/Threads/`:
    ### Reverse Prompting (2026-03-01)
    - Have the model generate the prompt that would produce a given output
    - Useful for reverse-engineering effective prompt patterns
-   *Source: Threads/New-Prompting-Tips.md*
+   *Source: New-Prompting-Tips.md*
    ```
 8. Cross-reference added: `(see [prompt entropy](failure-patterns.md#the-four-named-patterns))`
 9. No contradictions found.
@@ -268,4 +259,4 @@ Say you drop a file `New-Prompting-Tips.md` into `AI Notes/Threads/`:
 16. The `## Recent Additions` heading is removed.
 17. `prompt-engineering.md` now reads as one document — no seams visible.
 
-The original `New-Prompting-Tips.md` in `Threads/` is untouched throughout.
+The original `New-Prompting-Tips.md` in your source directory is untouched throughout.

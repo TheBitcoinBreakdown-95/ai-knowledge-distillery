@@ -622,7 +622,7 @@ Decision rule for choosing where knowledge lives, ordered by enforcement strengt
 
 Complements the Knowledge Type Placement Matrix above by adding the enforcement dimension -- the matrix answers "where does this type of knowledge go?", the ladder answers "how strongly must it be enforced?"
 
-*Source: deep-research-report-claudecodeknowledgelayer.md, Phase 16 implementation experience*
+*Source: deep-research-report-claudecodeknowledgelayer.md*
 
 ---
 
