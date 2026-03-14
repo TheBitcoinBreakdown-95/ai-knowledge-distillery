@@ -931,3 +931,17 @@ These source files contained no extractable content:
 | `Twitter Bookmarks/2026-03-11-NirDiamantAI-claude-code-power-users-youll-want-to-see-this-theres-a-publ.md` | agency-agents: 61-specialist agent library, agent-as-specialist pattern, drop-in ~/.claude/agents/ |
 | `Twitter Bookmarks/2026-03-14-bc1beat-we-built-socialclaw-an-xtwitter-marketing-intelligence-agent.md` | SocialClaw: X/Twitter marketing agent, 7 workflows, $0.08/report micro-priced agentic services |
 | `Twitter Bookmarks/2026-03-13-_pretyflaco-releasing-meetscribe-a-fully-local-open-source-meeting-trans.md` | meetscribe: fully local meeting transcription, WhisperX+pyannote+Ollama, privacy-sensitive pipeline |
+
+## Session 64 -- Batch 16
+
+### skills.md
+
+| Source File | What It Contributed |
+|-------------|-------------------|
+| `Twitter Bookmarks/2026-02-18-arscontexta-httpstcoxmyso3mc8f.md` | Skill Graphs: networked skill files via wikilinks, MOCs, YAML frontmatter progressive disclosure, recursive traversal |
+
+### community-insights.md
+
+| Source File | What It Contributed |
+|-------------|-------------------|
+| `Twitter Bookmarks/2026-02-25-hasantoxr-breaking-someone-just-built-a-tool-that-turns-any-github-rep.md` | GitNexus: browser-only repo-to-knowledge-graph, 4-pass analysis (file mapping, Tree-sitter AST, import resolution, call graph) |

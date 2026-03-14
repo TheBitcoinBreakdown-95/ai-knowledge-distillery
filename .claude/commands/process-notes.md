@@ -1,6 +1,6 @@
 ---
 description: Process new notes from source directories and integrate them into the Knowledge Distillery.
-disable-model-invocation: true
+disable-model-invocation: false
 ---
 
 Process new notes from source directories and integrate them into the Knowledge Distillery.
@@ -149,5 +149,5 @@ Process new notes from source directories and integrate them into the Knowledge 
 - Preserve source attribution for every addition
 - If a file does not clearly fit any category, add it to `community-insights.md`
 - Paths in `ingested-files.md` are relative to the repo root
-- **Batch limit:** Process at most 20 files per invocation. If more than 20 new files are detected, process the first 20 and report the remainder for the next run
+- **Batch limit:** Process all new files in a single invocation. Use subagents to parallelize reading and classification when there are more than 10 new files
 - **Human spot-check:** After the dedup skip log (step 9), present 5 randomly selected dedup skips and ask the user to confirm they agree with the skip decisions before finalizing

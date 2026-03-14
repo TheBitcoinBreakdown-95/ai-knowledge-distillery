@@ -927,7 +927,7 @@ Claude Code offers 38 settings and 84 environment variables (use the `"env"` fie
 - Flags: `--verbose` for detailed logs, `--sandbox`/`--no-sandbox` for filesystem isolation
 - Distinct from Claude Code on the web: Remote Control = your machine + remote UI; Claude Code on the web = Anthropic cloud infrastructure
 
-(see [tools-and-integrations.md#voice-mode-in-claude-code](#voice-mode-in-claude-code) for another recent CLI interaction mode)
+(see [tools-and-integrations.md#voice-mode-in-claude-code-2026-03-03](#voice-mode-in-claude-code-2026-03-03) for another recent CLI interaction mode)
 
 *Source: Twitter Bookmarks/2026-03-13-bcherny-you-can-now-launch-claude-code-sessions-on-your-laptop-from.md (@bcherny, @noahzweben); Continue local sessions from any device with Remote Control.md (Claude Code Docs)*
 

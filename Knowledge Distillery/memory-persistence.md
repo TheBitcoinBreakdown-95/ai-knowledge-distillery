@@ -603,7 +603,7 @@ Immutable event-driven project state management replacing static Kanban boards:
 - **Compounding effect:** each new note increases future session quality without extra setup effort; eliminates manual context-pasting at session start
 - No data leaves the machine -- full privacy, works offline
 
-(see [memory-persistence.md#layer-3-external-memory-databases](memory-persistence.md#layer-3-external-memory-databases) for related cross-session memory patterns)
+(see [memory-persistence.md#layer-3-claude-mem-plugin-automatic-cross-session](memory-persistence.md#layer-3-claude-mem-plugin-automatic-cross-session) for related cross-session memory patterns)
 
 *Source: Twitter Bookmarks/2026-03-12-nurijanian-if-youre-a-pm-who-uses-claude-codecursor-to-build-and-execut.md (@nurijanian)*
 
@@ -613,7 +613,7 @@ Immutable event-driven project state management replacing static Kanban boards:
 - Positioned as an alternative to Claude Code's built-in memory feature when that feature is insufficient
 - Complements qmd (retrieval) -- lossless-claw focuses on in-session continuity, qmd on cross-session retrieval
 
-(see [memory-persistence.md#layer-2-worklogs-and-context-files](memory-persistence.md#layer-2-worklogs-and-context-files) for manual continuity approaches)
+(see [memory-persistence.md#layer-2-worklogs-feature-scoped-session-to-session](memory-persistence.md#layer-2-worklogs-feature-scoped-session-to-session) for manual continuity approaches)
 
 *Source: Twitter Bookmarks/2026-03-14-steipete-theres-a-lot-of-cool-stuff-being-built-around-openclaw-if-th.md (@steipete)*
 
