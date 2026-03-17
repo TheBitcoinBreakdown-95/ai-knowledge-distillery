@@ -37,6 +37,7 @@ kb-mcp/                        # Local semantic search engine (MCP server)
 - **`/kb-status`** -- Read-only diagnostic: pending ingestion, backlog, broken cross-refs, KB size.
 - **`/verify-kb [file]`** -- Deep-research claims against current web sources. Flags outdated content.
 - **`/audit [path]`** -- Audit a project against KB best practices. Gap analysis with fix recommendations.
+- **`/kickoff [task]`** -- KB-powered pre-work brief. Retrieves relevant practices, anti-patterns, and verification patterns before starting. See [kickoff-guide.md](Knowledge%20Distillery/kickoff-guide.md) for full reference.
 
 ## Conventions
 
