@@ -71,6 +71,17 @@ Every API key pasted into an AI agent's input hits provider servers in plaintext
 
 ## Running AI Locally
 
+### meetscribe: Fully Local Meeting Transcription
+
+- **Repo:** github.com/pretyflaco/meetscribe -- local open-source meeting transcription; no cloud, no subscriptions
+- Stack: records any meeting app -> WhisperX for transcription -> pyannote for speaker diarization -> Ollama for AI summary -> PDF output
+- Runs entirely on local GPU; all data stays on device
+- Demonstrates the fully-local AI pipeline for privacy-sensitive workflows (meetings, sensitive discussions)
+
+(see [autonomous-agents.md](autonomous-agents.md#local-inference-runtimes-ollama-and-vllm) for related local AI tooling)
+
+*Source: Twitter Bookmarks/2026-03-13-_pretyflaco-releasing-meetscribe-a-fully-local-open-source-meeting-trans.md (@_pretyflaco)*
+
 ### AirLLM: 70B Models on 4GB GPUs
 
 Run large models on consumer hardware without distillation or pruning:
@@ -389,11 +400,42 @@ Dedicated @simplifyinAI thread with concrete Scrapling performance data and comm
 
 *Source: Twitter Bookmarks/2026-03-09-simplifyinAI-breaking-the-biggest-bottleneck-for-ai-agents-just-got-solve.md*
 
+### agency-agents: 61-Agent Specialist Library
+
+- **Repo:** github.com/msitarzewski/agency-agents -- drop-in agent library for Claude Code (also works with Cursor, Windsurf, Aider, Gemini CLI)
+- 61 specialized agents covering engineering, design, marketing, product, testing, and more; each with defined personality, workflows, and expected deliverables
+- Install: copy desired agent files to `~/.claude/agents/`; activate by name rather than prompting a generic assistant
+- Example specialists: security engineer, growth hacker, reality checker, whimsy injector
+- Illustrates the agent-as-specialist pattern: narrow domain + defined persona outperforms a general-purpose prompt
+
+(see [agent-design.md](agent-design.md#personas-imaginary-colleagues-that-catch-what-you-miss) for the Personas / imaginary colleagues pattern)
+
+*Source: Twitter Bookmarks/2026-03-11-NirDiamantAI-claude-code-power-users-youll-want-to-see-this-theres-a-publ.md (@NirDiamantAI)*
+
+### GitNexus: Browser-Only Repo Knowledge Graph
+
+- Converts any GitHub repo into an interactive knowledge graph with AI chat, entirely in-browser (no backend, no API calls with your code)
+- 4-pass analysis: (1) file structure mapping, (2) AST parsing via Tree-sitter, (3) import/dependency resolution, (4) full function call graph construction
+- Chat interface for natural language queries: "How does authentication work?", "What calls this function?", "Show classes that inherit from BaseClass"
+- Zero server, zero cost, open source; API keys stored locally, never transmitted
+- Distinct from Google CodeWiki (which generates interactive guides, not knowledge graphs)
+
+*Source: Twitter Bookmarks/2026-02-25-hasantoxr-breaking-someone-just-built-a-tool-that-turns-any-github-rep.md (@hasantoxr)*
+
 ---
 
 ## Agent-Driven Marketing & Sales
 
 Concrete tactics for using an always-on OpenClaw agent as a marketing/sales engine. Each tactic includes real metrics from production use.
+
+### SocialClaw: Marketing Intelligence Agent
+
+- **Repo:** github.com/BlockRunAI/socialclaw -- X/Twitter marketing agent built on Claude Code; no per-user API keys required
+- 7 workflows: trend detection, audience segmentation by influence tier, KOL discovery, daily growth brief with 3 actions, and more
+- Cost: $0.08 per report (paid in USDC); demonstrates micro-priced agentic services
+- Trend detection example: "Anthropic has 115M views today" surfaced automatically without manual search
+
+*Source: Twitter Bookmarks/2026-03-14-bc1beat-we-built-socialclaw-an-xtwitter-marketing-intelligence-agent.md (@bc1beat)*
 
 ### Buying Intent Sniping
 
@@ -881,42 +923,3 @@ Actionable framework for building and marketing consumer apps with AI tools:
 
 ---
 
-## Recent Additions
-
-### agency-agents: 61-Agent Specialist Library (2026-03-11)
-- **Repo:** github.com/msitarzewski/agency-agents -- drop-in agent library for Claude Code (also works with Cursor, Windsurf, Aider, Gemini CLI)
-- 61 specialized agents covering engineering, design, marketing, product, testing, and more; each with defined personality, workflows, and expected deliverables
-- Install: copy desired agent files to `~/.claude/agents/`; activate by name rather than prompting a generic assistant
-- Example specialists: security engineer, growth hacker, reality checker, whimsy injector
-- Illustrates the agent-as-specialist pattern: narrow domain + defined persona outperforms a general-purpose prompt
-
-(see [agent-design.md](agent-design.md#personas-imaginary-colleagues-that-catch-what-you-miss) for the Personas / imaginary colleagues pattern)
-
-*Source: Twitter Bookmarks/2026-03-11-NirDiamantAI-claude-code-power-users-youll-want-to-see-this-theres-a-publ.md (@NirDiamantAI)*
-
-### SocialClaw: Marketing Intelligence Agent on Claude Code (2026-03-14)
-- **Repo:** github.com/BlockRunAI/socialclaw -- X/Twitter marketing agent built on Claude Code; no per-user API keys required
-- 7 workflows: trend detection, audience segmentation by influence tier, KOL discovery, daily growth brief with 3 actions, and more
-- Cost: $0.08 per report (paid in USDC); demonstrates micro-priced agentic services
-- Trend detection example: "Anthropic has 115M views today" surfaced automatically without manual search
-
-*Source: Twitter Bookmarks/2026-03-14-bc1beat-we-built-socialclaw-an-xtwitter-marketing-intelligence-agent.md (@bc1beat)*
-
-### meetscribe: Fully Local Meeting Transcription (2026-03-13)
-- **Repo:** github.com/pretyflaco/meetscribe -- local open-source meeting transcription; no cloud, no subscriptions
-- Stack: records any meeting app -> WhisperX for transcription -> pyannote for speaker diarization -> Ollama for AI summary -> PDF output
-- Runs entirely on local GPU; all data stays on device
-- Demonstrates the fully-local AI pipeline for privacy-sensitive workflows (meetings, sensitive discussions)
-
-(see [autonomous-agents.md](autonomous-agents.md#local-inference-runtimes-ollama-and-vllm) for related local AI tooling)
-
-*Source: Twitter Bookmarks/2026-03-13-_pretyflaco-releasing-meetscribe-a-fully-local-open-source-meeting-trans.md (@_pretyflaco)*
-
-### GitNexus: Browser-Only Repo Knowledge Graph (2026-02-25)
-- Converts any GitHub repo into an interactive knowledge graph with AI chat, entirely in-browser (no backend, no API calls with your code)
-- 4-pass analysis: (1) file structure mapping, (2) AST parsing via Tree-sitter, (3) import/dependency resolution, (4) full function call graph construction
-- Chat interface for natural language queries: "How does authentication work?", "What calls this function?", "Show classes that inherit from BaseClass"
-- Zero server, zero cost, open source; API keys stored locally, never transmitted
-- Distinct from Google CodeWiki (which generates interactive guides, not knowledge graphs)
-
-*Source: Twitter Bookmarks/2026-02-25-hasantoxr-breaking-someone-just-built-a-tool-that-turns-any-github-rep.md (@hasantoxr)*

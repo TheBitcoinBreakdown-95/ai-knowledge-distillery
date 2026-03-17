@@ -273,6 +273,19 @@ QMD (by Tobi Lutke / Shopify) is an opt-in replacement for the built-in SQLite i
 
 *Sources: Give your Openclaw the Memory it Needs (Full Guide).md; Give Your OpenClaw Agent Memory that Actually Works.md*
 
+#### qmd + Obsidian: Local Hybrid Search Stack
+
+- **qmd** (github.com/tobi/qmd): CLI tool by Shopify CEO Tobi Lutke for searching local markdown files; 14.5k stars
+- Three search modes running entirely on-device: BM25 full-text, vector semantic search (300MB local embedding model), and LLM re-ranking for final relevance
+- Stack: Obsidian for note storage (all files are local .md, no lock-in) + qmd for retrieval + Claude Code as the query interface
+- `qmd embed` indexes the entire collection once; Claude Code calls `qmd query "..."` during sessions to pull relevant context automatically
+- **Compounding effect:** each new note increases future session quality without extra setup effort; eliminates manual context-pasting at session start
+- No data leaves the machine -- full privacy, works offline
+
+(see [memory-persistence.md#layer-3-claude-mem-plugin-automatic-cross-session](memory-persistence.md#layer-3-claude-mem-plugin-automatic-cross-session) for related cross-session memory patterns)
+
+*Source: Twitter Bookmarks/2026-03-12-nurijanian-if-youre-a-pm-who-uses-claude-codecursor-to-build-and-execut.md (@nurijanian)*
+
 ---
 
 ### Mem0 and Cognee: External Memory Layers
@@ -313,6 +326,17 @@ A community tool that indexes raw chat logs (JSONL) in SQLite with FTS search an
 Novel approach: FTS over raw chat transcripts rather than summarized/compressed observations. Where claude-mem compresses before storing, Claudie-memory stores verbatim and searches full-text -- trading storage for fidelity.
 
 *Source: deep-research-report.md*
+
+### lossless-claw: Compaction-Resistant Memory Plugin
+
+- **lossless-claw** (github.com/martian-engineering/lossless-claw): OpenClaw memory plugin targeting the compaction forgetfulness problem
+- Context compaction discards detail to fit within the window; lossless-claw preserves key memory across compaction events
+- Positioned as an alternative to Claude Code's built-in memory feature when that feature is insufficient
+- Complements qmd (retrieval) -- lossless-claw focuses on in-session continuity, qmd on cross-session retrieval
+
+(see [memory-persistence.md#layer-2-worklogs-feature-scoped-session-to-session](memory-persistence.md#layer-2-worklogs-feature-scoped-session-to-session) for manual continuity approaches)
+
+*Source: Twitter Bookmarks/2026-03-14-steipete-theres-a-lot-of-cool-stuff-being-built-around-openclaw-if-th.md (@steipete)*
 
 ---
 
@@ -593,28 +617,5 @@ Immutable event-driven project state management replacing static Kanban boards:
 
 ---
 
-## Recent Additions
-
-### qmd + Obsidian: Local Hybrid Search Stack (2026-03-12)
-- **qmd** (github.com/tobi/qmd): CLI tool by Shopify CEO Tobi Lutke for searching local markdown files; 14.5k stars
-- Three search modes running entirely on-device: BM25 full-text, vector semantic search (300MB local embedding model), and LLM re-ranking for final relevance
-- Stack: Obsidian for note storage (all files are local .md, no lock-in) + qmd for retrieval + Claude Code as the query interface
-- `qmd embed` indexes the entire collection once; Claude Code calls `qmd query "..."` during sessions to pull relevant context automatically
-- **Compounding effect:** each new note increases future session quality without extra setup effort; eliminates manual context-pasting at session start
-- No data leaves the machine -- full privacy, works offline
-
-(see [memory-persistence.md#layer-3-claude-mem-plugin-automatic-cross-session](memory-persistence.md#layer-3-claude-mem-plugin-automatic-cross-session) for related cross-session memory patterns)
-
-*Source: Twitter Bookmarks/2026-03-12-nurijanian-if-youre-a-pm-who-uses-claude-codecursor-to-build-and-execut.md (@nurijanian)*
-
-### lossless-claw: Compaction-Resistant Memory Plugin (2026-03-14)
-- **lossless-claw** (github.com/martian-engineering/lossless-claw): OpenClaw memory plugin targeting the compaction forgetfulness problem
-- Context compaction discards detail to fit within the window; lossless-claw preserves key memory across compaction events
-- Positioned as an alternative to Claude Code's built-in memory feature when that feature is insufficient
-- Complements qmd (retrieval) -- lossless-claw focuses on in-session continuity, qmd on cross-session retrieval
-
-(see [memory-persistence.md#layer-2-worklogs-feature-scoped-session-to-session](memory-persistence.md#layer-2-worklogs-feature-scoped-session-to-session) for manual continuity approaches)
-
-*Source: Twitter Bookmarks/2026-03-14-steipete-theres-a-lot-of-cool-stuff-being-built-around-openclaw-if-th.md (@steipete)*
 
 
