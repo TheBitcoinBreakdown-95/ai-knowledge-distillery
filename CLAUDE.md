@@ -11,6 +11,7 @@ Knowledge Distillery/
   README.md                    # Index, concept glossary, AI reading instructions
   LEARNING-PATH.md             # 4-level curated learning paths (30 entries)
   DECISIONS.md                 # Architectural decision traces
+  SOUL.md                      # Agent identity: KB-aware working partner instincts
   DISCREPANCIES.md             # Review queue: outdated/wrong/contradicted claims
   KB-PROCESS.md                # Pipeline internals and worked examples
   prompt-engineering.md        # 12 topic files covering AI/LLM best practices
