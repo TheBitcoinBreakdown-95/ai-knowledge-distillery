@@ -1,6 +1,6 @@
 # AI Knowledge Distillery
 
-**Stop saving articles you'll never find again.** This is a complete system for turning raw AI/LLM notes into a verified, searchable knowledge base that your AI agent actually uses -- with coaching, verification, and a feedback loop that makes every session smarter than the last.
+**Drowning in AI bookmarks, tutorials, and tips you'll never use?** This system turns them into a verified, searchable knowledge base your agent actually consults -- with coaching, verification, and a feedback loop that makes every session smarter than the last.
 
 Built for Claude Code. Forkable. Replace our content with your domain and the pipeline still works.
 
