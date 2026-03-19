@@ -12,13 +12,25 @@ This is not a bookmark folder or a RAG index. It is a synthesized, deduplicated,
 
 Most knowledge systems store articles and retrieve chunks. Five articles about prompting become five separate results. The Distillery merges them into one entry where each concept has a single home, cross-referenced everywhere else. Duplicates are caught. Contradictions are flagged to [DISCREPANCIES.md](Knowledge%20Distillery/DISCREPANCIES.md) for human review -- not silently stored alongside the old version.
 
+### It briefs you before you start
+
+[`/kickoff`](Knowledge%20Distillery/kickoff-guide.md) queries the entire KB before you begin any non-trivial task. It reads your project context, generates 10-30 targeted searches, and presents a structured brief: relevant practices, anti-patterns, failure modes to watch for, and a verification plan. Three modes:
+
+- **Task brief** -- you specify the task, it pulls everything the KB knows that's relevant
+- **Setup brief** -- new project with no CLAUDE.md? It detects what's missing, asks the right questions, and proposes a setup plan
+- **Ready check** -- initialized project, no task given? It shows project health and open tracker items, then asks what you're working on
+
+Think of it as a senior colleague saying "here's what I'd keep in mind before starting this" -- except backed by 160+ synthesized sources instead of anecdotes.
+
 ### It coaches you while you work
 
-The KB is not documentation you have to remember to read. A [coaching layer](Knowledge%20Distillery/community-insights.md) (`.claude/rules/coaching.md`) applies best practices proactively during Claude Code sessions:
+The KB is not documentation you have to remember to read. A coaching layer applies best practices proactively during Claude Code sessions. `/kickoff` answers from the KB; coaching asks *you* for missing context. They complement each other:
 
 - **Adaptive Kickoff** -- asks clarifying questions on ambiguous tasks before you waste a generation
 - **Specificity Nudge** -- catches underspecified requests ("A few details would help me get this right on the first try...")
 - **Verification Before Done** -- refuses to self-report "done" without evidence. "I updated the file" is not verification; "I updated the file and confirmed the new function is present at line 42" is
+
+A [SOUL.md](Knowledge%20Distillery/SOUL.md) gives the agent a KB-aware identity -- its default instinct is to check the KB before advising, cite sources, and use available tools. This is what makes the difference between a generic assistant and a working partner backed by verified knowledge.
 
 Every suggestion cites the KB source. Every suggestion is soft -- say "just do it" to skip. You learn the patterns by seeing them applied, not by reading a manual.
 
@@ -60,6 +72,7 @@ Raw notes/articles/bookmarks
                 --> Framework updates (rules, coaching, audit checks, CLAUDE.md)
             --> /verify-kb (is this still true?)
             --> /audit (are we actually doing this?)
+            --> /kickoff (brief me before I start this task)
             --> Coaching layer (real-time suggestions during work)
             --> Teaching queue (surface unused concepts when relevant)
 ```
@@ -123,15 +136,19 @@ python indexer.py        # build the index
 | [project-setup.md](Knowledge%20Distillery/project-setup.md) | 505 | 8 kickoff questions, CLAUDE.md template, /init workflow, settings |
 | [autonomous-agents.md](Knowledge%20Distillery/autonomous-agents.md) | 1077 | OpenClaw, brain/muscles, cron architecture, agent economics, security |
 | [community-insights.md](Knowledge%20Distillery/community-insights.md) | 922 | Curated community tips, tools, tech stacks, real-world agent deployments |
+| [SOUL.md](Knowledge%20Distillery/SOUL.md) | 25 | Agent identity -- KB-aware working partner instincts |
+| [kickoff-guide.md](Knowledge%20Distillery/kickoff-guide.md) | 199 | Comprehensive /kickoff command reference (3 modes, pipeline, best practices) |
 
 ---
 
 ## Quick Start
 
 1. **Browse the knowledge** -- start with [Knowledge Distillery/README.md](Knowledge%20Distillery/README.md) for the full topic index
-2. **Follow the learning path** -- [LEARNING-PATH.md](Knowledge%20Distillery/LEARNING-PATH.md) has 30 curated entries across 4 levels (Foundations -> Daily Use -> Power User -> Specialized)
-3. **Search semantically** -- the [kb-mcp/](kb-mcp/) search engine exposes 3 MCP tools
-4. **Fork and fill** -- the system is designed so you can replace our topic files with your own domain knowledge. Drop notes in source directories, run `/process-notes`, repeat
+2. **Run `/kickoff` on your first task** -- it queries the KB and tells you everything relevant before you start. [Full guide](Knowledge%20Distillery/kickoff-guide.md)
+3. **Follow the learning path** -- [LEARNING-PATH.md](Knowledge%20Distillery/LEARNING-PATH.md) has 30 curated entries across 4 levels (Foundations -> Daily Use -> Power User -> Specialized)
+4. **Copy the commands** -- [commands/](Knowledge%20Distillery/commands/) contains the slash command sources. Copy to your `.claude/commands/` to get `/kickoff`, `/audit`, etc.
+5. **Search semantically** -- the [kb-mcp/](kb-mcp/) search engine exposes 3 MCP tools
+6. **Fork and fill** -- replace our topic files with your own domain knowledge. Drop notes in source directories, run `/process-notes`, repeat
 
 ## Architecture Decisions
 
