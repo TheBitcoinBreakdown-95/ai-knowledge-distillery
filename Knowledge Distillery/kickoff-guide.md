@@ -24,9 +24,9 @@ Three invocation patterns:
 
 ---
 
-## The 7-Step Pipeline
+## How It Works Internally
 
-Here is what happens internally when you run `/kickoff`:
+Here is what happens when you run `/kickoff` (steps with sub-variants for the 3 output formats):
 
 ### Step 1: Understand the Project
 
@@ -168,7 +168,7 @@ This is the most important design detail. `/kickoff` and Coaching Rule 1 (Adapti
 
 On initialized projects with a clear task, `/kickoff` does not ask the 8 Kickoff Questions. Coaching asks. Kickoff answers. They serve different functions and remain separate.
 
-(see [DECISIONS.md](../../../DECISIONS.md#decision-kickoff-command-not-expanded-coaching) for the architectural reasoning behind this separation)
+(see [DECISIONS.md](DECISIONS.md#decision-kickoff-command-not-expanded-coaching) for the architectural reasoning behind this separation)
 
 ---
 

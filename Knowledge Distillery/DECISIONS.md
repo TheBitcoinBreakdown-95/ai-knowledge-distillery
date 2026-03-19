@@ -265,6 +265,22 @@ The report's Stage 2 recommendation — "hybrid BM25+vector, section-level chunk
 
 ---
 
+## Decision: /kickoff Command (Not Expanded Coaching)
+
+- **Date:** 2026-03-14
+- **Context:** The workspace has 160+ sources distilled into 12 KB topic files, but this knowledge is passive -- only accessed via explicit commands (`/audit`, `search_kb`) or 3 soft coaching nudges. Coaching Rule 1 (Adaptive Kickoff) fires on ambiguous requests and asks the user for missing context. But the KB already contains most of the context needed -- best practices, anti-patterns, verification patterns. There's no mechanism to retrieve and apply this knowledge proactively at task start.
+- **Alternatives Considered:**
+  - Expand coaching Rule 1 to also search the KB (mixes two concerns: asking user vs retrieving knowledge; makes the rule too complex)
+  - Add a PreToolUse hook that injects KB context (hooks can block or allow, not inject context)
+  - Always-loaded rule that says "search KB before every task" (vague, no structure, wastes context on trivial tasks)
+  - On-demand `/kickoff` command that retrieves task-specific KB knowledge and produces a brief
+- **Decision:** Create `/kickoff` as a separate on-demand command. It complements coaching (which asks the user) by answering from the KB. Takes a task description or reads the worklog, runs parallel `search_kb` queries, and outputs a structured brief: relevant practices, anti-patterns, applicable invariants, verification plan, and teaching queue concepts.
+- **Rationale:** Coaching asks. Kickoff answers. They serve different functions and should remain separate. Making kickoff a command (not a rule) keeps it on the "on-demand" tier of the enforcement ladder -- the user invokes it when they want it, it doesn't fire on every trivial task. The command uses `search_kb` MCP queries rather than reading topic files directly, keeping context lean.
+- **KB Source:** [project-setup.md](project-setup.md) -- 8 Kickoff Questions; [context-engineering.md](context-engineering.md) -- Enforcement Guarantee Ladder (on-demand tier); [prompt-engineering.md](prompt-engineering.md) -- Specificity Is Everything
+- **Full reference:** [kickoff-guide.md](kickoff-guide.md) (user guide) / [commands/kickoff.md](commands/kickoff.md) (command source)
+
+---
+
 ## Decision: Bird CLI for Bookmark Export
 
 - **Context:** Needed a reliable way to export Twitter/X bookmarks as source material for the Knowledge Distillery pipeline.
