@@ -281,6 +281,19 @@ The report's Stage 2 recommendation — "hybrid BM25+vector, section-level chunk
 
 ---
 
+## Decision: Project-Scoped SOUL.md (Not Generic Assistant Behavior)
+
+- **Date:** 2026-03-19
+- **Context:** The coaching layer (rules with specific triggers) and commands (`/kickoff`, `/audit`) provide structured KB integration. But for someone forking the repo without the full `.claude/rules/` setup, there is no ambient signal that tells the agent "you have a KB, use it." The agent defaults to generic behavior.
+- **Alternatives Considered:**
+  - Rely solely on coaching rules (precise triggers, but no ambient identity -- agent doesn't know *why* it should check the KB)
+  - Generic "be helpful" soul (too vague, dilutes the specific coaching triggers into unfocused suggestion behavior)
+  - KB-aware identity soul that defines who the agent is in relation to the KB infrastructure
+- **Decision:** Create a project-scoped [SOUL.md](SOUL.md) that gives the agent a KB-aware identity: check the KB before advising, cite sources, use available tools, suggest without blocking. Deliberately small (~25 lines). Does not duplicate coaching rules -- it provides the *motivation* for those rules.
+- **Rationale:** The coaching rules define when and how to act. The soul defines who the agent is. For forks without the full rules setup, SOUL.md + commands are enough to get coaching-like behavior. For the full setup, the soul reinforces why the coaching layer exists. The "suggest, never block" principle and "cite your sources" instinct are the two behaviors that make the KB compound -- the user learns the KB structure through repeated exposure to cited recommendations.
+
+---
+
 ## Decision: Bird CLI for Bookmark Export
 
 - **Context:** Needed a reliable way to export Twitter/X bookmarks as source material for the Knowledge Distillery pipeline.

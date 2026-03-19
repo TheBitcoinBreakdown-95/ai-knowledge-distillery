@@ -133,6 +133,7 @@ Falls back to keyword-only if Ollama is unavailable.
 | Configure CLAUDE.md and context | [context-engineering.md](context-engineering.md) |
 | Run an autonomous 24/7 agent (OpenClaw) | [autonomous-agents.md](autonomous-agents.md) |
 | Browse community tips and tools | [community-insights.md](community-insights.md) |
+| Understand the agent's KB-aware identity | [SOUL.md](SOUL.md) |
 | Understand the /kickoff command | [kickoff-guide.md](kickoff-guide.md) (guide) / [commands/kickoff.md](commands/kickoff.md) (source) |
 | Search the KB semantically | Use `search_kb` MCP tool (see [Retrieval Layer](#retrieval-layer-local-search-engine)) |
 | Understand why we built it this way | [DECISIONS.md](DECISIONS.md) |
