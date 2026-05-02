@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "kb-retrieval": {
+      "command": "/bin/bash",
+      "args": [
+        "-c",
+        "cd \"/ABSOLUTE/PATH/TO/ai-knowledge-distillery/kb-mcp\" && source .venv/bin/activate && python kb_mcp_server.py"
+      ],
+      "env": {
+        "KB_DIR": "/ABSOLUTE/PATH/TO/ai-knowledge-distillery/Knowledge Distillery"
+      }
+    }
+  }
+}
