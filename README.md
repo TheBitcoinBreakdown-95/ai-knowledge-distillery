@@ -73,7 +73,7 @@ Every suggestion cites the KB source. Every suggestion is soft -- say "just do i
 2. **Read the topic files** that match your current work (see [What's Inside](#whats-inside) below)
 3. **Run `/kickoff` on your first task** -- it queries the KB and tells you everything relevant before you start
 4. **Copy the [commands/](Knowledge%20Distillery/commands/) to your `.claude/commands/`** to get `/kickoff`, `/audit`, etc.
-5. **Set up the search engine** (optional): see [kb-mcp/](kb-mcp/) for the MCP server setup
+5. **Set up the search engine** (optional): run `./setup.sh` from the repo root for one-shot install (Python venv + Ollama check + index build), or see [kb-mcp/](kb-mcp/) for manual setup
 6. **Drop your own notes** into a source directory, run `/process-notes`, and the pipeline handles the rest
 
 To replace our content with your domain: keep the file structure, clear the topic files, and start ingesting your own sources. The pipeline, commands, and coaching layer work with any subject matter.
@@ -186,6 +186,16 @@ The KB includes a local MCP server for semantic search, plus `/kickoff` as the p
 | **Section-level chunks** (not paragraphs) | Each H2 heading becomes one chunk. Preserves context that paragraph chunking destroys |
 | **MCP server** (not subprocess calls) | Claude Code native integration. 3 tools exposed directly |
 | **CAG fallback** | At ~37K tokens, full context loading beats retrieval on accuracy (ICML 2025). Retrieval adds value for source corpus, constrained context, and cross-topic discovery |
+
+**One-shot install (recommended):**
+
+```bash
+./setup.sh
+```
+
+Sets up Python venv + dependencies, checks Ollama and pulls the embedding model, and builds the search index in one go.
+
+**Manual install (if you prefer to see what runs):**
 
 ```bash
 cd kb-mcp
