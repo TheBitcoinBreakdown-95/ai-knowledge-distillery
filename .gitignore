@@ -16,6 +16,9 @@ Knowledge Distillery/sources/processing-log.md
 .claude/.tmp/
 Knowledge Distillery/.claude/
 
+# MCP config -- paths are machine-specific. Use .mcp.json.example as template.
+.mcp.json
+
 # Cloned repos (reference material, not our code)
 anthropic-courses/
 awesome-openclaw-usecases/
