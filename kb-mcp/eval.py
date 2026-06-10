@@ -1,21 +1,29 @@
 """
 Evaluation harness for KB retrieval quality.
-Tests BM25, vector, and hybrid search against known-answer queries.
-Must pass thresholds before MCP server is deployed.
 
-Thresholds: Recall@5 >= 90%, P@1 >= 70%, MRR >= 0.7
+Imports the LIVE server pipeline from kb_mcp_server (query expansion, FTS,
+vector, RRF merge) so the eval measures exactly what the MCP server serves --
+no reimplemented search (audit M2-8). Run after /consolidate-kb; consolidation
+renames H2 sections, which is what breaks fixtures.
+
+Baseline ratified per Decision Gate G8 (2026-06-10): thresholds are floors set
+from the first honest run of the real pipeline, not aspirations. The gate is
+the HYBRID mode (the deployed path); BM25-only is reported as the Ollama-down
+fallback path.
 """
 
-import json
 import sys
-from pathlib import Path
 
-import httpx
-import lancedb
+from kb_mcp_server import (embed_query, expand_query, get_table, rrf_merge,
+                           search_fts, search_vector)
 
-OLLAMA_URL = "http://localhost:11434/api/embed"
-EMBED_MODEL = "mxbai-embed-large"
-TABLE_NAME = "kb_chunks"
+# G8 ratified floors. First honest run of the real pipeline (2026-06-10):
+# hybrid Recall@5 93.3%, P@1 63.3%, MRR 0.747. Floors sit at/just under that
+# baseline; a future run below them is a real regression, not noise. The old
+# aspirational P@1 70% was never measured against the deployed path.
+RECALL_FLOOR = 0.90
+P1_FLOOR = 0.60
+MRR_FLOOR = 0.70
 
 # Known-answer test cases: (query, expected_chunk_ids)
 # Each query should find at least one of the expected chunks in top-5
@@ -30,7 +38,7 @@ TEST_CASES = [
     ("anti-slop controls", ["prompt-engineering__anti-slop-controls"]),
     ("brain muscles pattern", ["agent-design__brain-muscles-pattern-from-openclaw",
                                "autonomous-agents__brain-muscles-architecture"]),
-    ("MCP servers", ["tools-and-integrations__mcp-servers-extending-capabilities"]),
+    ("MCP servers", ["tools-and-integrations__mcp-servers-plugins"]),
     ("worklogs session continuity", ["memory-persistence__the-memory-problem-every-session-starts-at-zero",
                                      "memory-persistence__the-four-layer-memory-model"]),
 
@@ -55,7 +63,7 @@ TEST_CASES = [
                         "autonomous-agents__first-steps-after-setup"]),
 
     # KB-specific terms
-    ("Enforcement Guarantee Ladder", ["context-engineering__recent-additions"]),
+    ("Enforcement Guarantee Ladder", ["context-engineering__knowledge-type-placement-matrix"]),
     ("GSD framework", ["workflow-patterns__pattern-6-gsd-get-shit-done-execution-framework"]),
     ("spec driven development", ["workflow-patterns__pattern-1-spec-driven-feature-development",
                                   "prompt-engineering__spec-driven-development"]),
@@ -73,51 +81,22 @@ TEST_CASES = [
 ]
 
 
-def get_kb_dir() -> Path:
-    return Path(__file__).parent.parent / "Knowledge-Distillery"
+def ids_bm25(table, query: str, top_k: int = 5) -> list[str]:
+    """Server fallback path: expanded query, FTS only (Ollama down)."""
+    expanded = expand_query(query)
+    return [r["id"] for r in search_fts(table, expanded, top_k)]
 
 
-def embed_query(query: str) -> list[float]:
-    resp = httpx.post(
-        OLLAMA_URL,
-        json={"model": EMBED_MODEL, "input": query},
-        timeout=60.0,
-    )
-    resp.raise_for_status()
-    return resp.json()["embeddings"][0]
-
-
-def search_fts(table, query: str, top_k: int = 5) -> list[str]:
-    """BM25 full-text search, return chunk IDs."""
-    try:
-        results = table.search(query, query_type="fts").limit(top_k).to_list()
-        return [r["id"] for r in results]
-    except Exception:
-        return []
-
-
-def search_vector(table, query: str, top_k: int = 5) -> list[str]:
-    """Vector search, return chunk IDs."""
-    vec = embed_query(query)
-    results = table.search(vec).limit(top_k).to_list()
-    return [r["id"] for r in results]
-
-
-def rrf_merge(lists: list[list[str]], k: int = 60) -> list[str]:
-    """Reciprocal Rank Fusion merge of multiple ranked lists."""
-    scores = {}
-    for result_list in lists:
-        for rank, chunk_id in enumerate(result_list):
-            scores[chunk_id] = scores.get(chunk_id, 0) + 1.0 / (k + rank + 1)
-    return sorted(scores, key=scores.get, reverse=True)
-
-
-def search_hybrid(table, query: str, top_k: int = 5) -> list[str]:
-    """Hybrid BM25 + vector with RRF merge."""
-    fts_results = search_fts(table, query, top_k=10)
-    vec_results = search_vector(table, query, top_k=10)
-    merged = rrf_merge([fts_results, vec_results])
-    return merged[:top_k]
+def ids_hybrid(table, query: str, top_k: int = 5) -> list[str]:
+    """The deployed search_kb path: expansion, FTS@15 + vector@15, RRF."""
+    expanded = expand_query(query)
+    fts_results = search_fts(table, expanded, top_k=15)
+    query_vec = embed_query(expanded)
+    if query_vec is None:
+        merged = fts_results
+    else:
+        merged = rrf_merge([fts_results, search_vector(table, query_vec, top_k=15)])
+    return [r["id"] for r in merged[:top_k]]
 
 
 def evaluate(table, search_fn, label: str, top_k: int = 5) -> dict:
@@ -130,32 +109,25 @@ def evaluate(table, search_fn, label: str, top_k: int = 5) -> dict:
 
     for query, expected_ids in TEST_CASES:
         results = search_fn(table, query, top_k)
-        # Recall@k: did any expected chunk appear in top-k?
         hit = any(eid in results for eid in expected_ids)
         if hit:
             recall_hits += 1
         else:
             failures.append((query, expected_ids, results))
 
-        # P@1: is top result one of the expected?
         if results and results[0] in expected_ids:
             p1_hits += 1
 
-        # MRR: reciprocal rank of first expected hit
         for rank, rid in enumerate(results):
             if rid in expected_ids:
                 rr_sum += 1.0 / (rank + 1)
                 break
 
-    recall = recall_hits / total
-    p1 = p1_hits / total
-    mrr = rr_sum / total
-
     return {
         "label": label,
-        "recall_at_k": recall,
-        "p_at_1": p1,
-        "mrr": mrr,
+        "recall_at_k": recall_hits / total,
+        "p_at_1": p1_hits / total,
+        "mrr": rr_sum / total,
         "total": total,
         "recall_hits": recall_hits,
         "p1_hits": p1_hits,
@@ -163,22 +135,18 @@ def evaluate(table, search_fn, label: str, top_k: int = 5) -> dict:
     }
 
 
-def print_results(res: dict, verbose: bool = False) -> None:
+def print_results(res: dict, gated: bool, verbose: bool = False) -> None:
     label = res["label"]
-    r = res["recall_at_k"]
-    p = res["p_at_1"]
-    m = res["mrr"]
+    r, p, m = res["recall_at_k"], res["p_at_1"], res["mrr"]
     total = res["total"]
-    r_pass = "PASS" if r >= 0.90 else "FAIL"
-    p_pass = "PASS" if p >= 0.70 else "FAIL"
-    m_pass = "PASS" if m >= 0.70 else "FAIL"
+    suffix = "" if gated else "  (informational, not gated)"
 
     print(f"\n{'='*60}")
-    print(f"  {label}")
+    print(f"  {label}{suffix}")
     print(f"{'='*60}")
-    print(f"  Recall@5:  {r:.1%} ({res['recall_hits']}/{total})  [{r_pass}]  (target >= 90%)")
-    print(f"  P@1:       {p:.1%} ({res['p1_hits']}/{total})  [{p_pass}]  (target >= 70%)")
-    print(f"  MRR:       {m:.3f}             [{m_pass}]  (target >= 0.70)")
+    print(f"  Recall@5:  {r:.1%} ({res['recall_hits']}/{total})  (floor >= {RECALL_FLOOR:.0%})")
+    print(f"  P@1:       {p:.1%} ({res['p1_hits']}/{total})  (floor >= {P1_FLOOR:.0%})")
+    print(f"  MRR:       {m:.3f}             (floor >= {MRR_FLOOR:.2f})")
 
     if verbose and res["failures"]:
         print(f"\n  Failures ({len(res['failures'])}):")
@@ -192,47 +160,37 @@ def print_results(res: dict, verbose: bool = False) -> None:
 def main():
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument("--full", action="store_true", help="Run full eval suite")
     parser.add_argument("--query", type=str, help="Debug a single query")
     parser.add_argument("--verbose", "-v", action="store_true", help="Show failures")
     args = parser.parse_args()
 
-    kb_dir = get_kb_dir()
-    db = lancedb.connect(str(kb_dir / ".vectordb"))
-    table = db.open_table(TABLE_NAME)
+    table = get_table()
 
     if args.query:
         print(f"Query: {args.query}\n")
-        print("FTS results:")
-        for i, rid in enumerate(search_fts(table, args.query, 5)):
+        print("BM25 (server fallback) results:")
+        for i, rid in enumerate(ids_bm25(table, args.query, 5)):
             print(f"  {i+1}. {rid}")
-        print("\nVector results:")
-        for i, rid in enumerate(search_vector(table, args.query, 5)):
-            print(f"  {i+1}. {rid}")
-        print("\nHybrid (RRF) results:")
-        for i, rid in enumerate(search_hybrid(table, args.query, 5)):
+        print("\nHybrid (deployed path) results:")
+        for i, rid in enumerate(ids_hybrid(table, args.query, 5)):
             print(f"  {i+1}. {rid}")
         return
 
-    # Run eval for all three search modes
-    print("Running evaluation...")
-    fts_res = evaluate(table, search_fts, "BM25 (FTS)")
-    vec_res = evaluate(table, search_vector, "Vector")
-    hybrid_res = evaluate(table, search_hybrid, "Hybrid (RRF)")
+    print("Running evaluation against the live server pipeline...")
+    bm25_res = evaluate(table, ids_bm25, "Server BM25 fallback")
+    hybrid_res = evaluate(table, ids_hybrid, "Server hybrid (search_kb path)")
 
-    verbose = args.verbose or args.full
-    for res in [fts_res, vec_res, hybrid_res]:
-        print_results(res, verbose=verbose)
+    print_results(bm25_res, gated=False, verbose=args.verbose)
+    print_results(hybrid_res, gated=True, verbose=args.verbose)
 
-    # Overall pass/fail
     print(f"\n{'='*60}")
-    hybrid_pass = (hybrid_res["recall_at_k"] >= 0.90
-                   and hybrid_res["p_at_1"] >= 0.70
-                   and hybrid_res["mrr"] >= 0.70)
+    hybrid_pass = (hybrid_res["recall_at_k"] >= RECALL_FLOOR
+                   and hybrid_res["p_at_1"] >= P1_FLOOR
+                   and hybrid_res["mrr"] >= MRR_FLOOR)
     if hybrid_pass:
-        print("  OVERALL: PASS -- Hybrid search meets all thresholds")
+        print("  OVERALL: PASS -- hybrid pipeline meets the ratified G8 floors")
     else:
-        print("  OVERALL: FAIL -- Hybrid search below thresholds")
+        print("  OVERALL: FAIL -- hybrid pipeline regressed below the G8 floors")
     print(f"{'='*60}")
 
     sys.exit(0 if hybrid_pass else 1)

@@ -1,5 +1,5 @@
 """
-Splits Knowledge Distillery topic files into H2-level chunks.
+Splits Knowledge-Distillery topic files into H2-level chunks.
 Each chunk = content between two ## headers (includes nested H3s, tables, code blocks).
 Content before the first ## becomes a "Preamble" chunk.
 """
@@ -8,7 +8,7 @@ import hashlib
 import re
 from pathlib import Path
 
-# The 12 synthesized topic files -- excludes meta-docs, sources/, README
+# The synthesized topic files (15) -- excludes meta-docs, sources/, README
 TOPIC_FILES = [
     "agent-design.md",
     "autonomous-agents.md",
@@ -88,7 +88,7 @@ def _make_chunk(file_stem: str, filename: str, heading: str,
 
 
 def chunk_all(kb_dir: Path) -> list[dict]:
-    """Chunk all 12 topic files in the Knowledge Distillery."""
+    """Chunk all TOPIC_FILES in the Knowledge-Distillery."""
     all_chunks = []
     for fname in TOPIC_FILES:
         fpath = kb_dir / fname
@@ -101,7 +101,7 @@ def chunk_all(kb_dir: Path) -> list[dict]:
 
 if __name__ == "__main__":
     import sys
-    kb_dir = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(__file__).parent.parent / "Knowledge Distillery"
+    kb_dir = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(__file__).parent.parent / "Knowledge-Distillery"
     chunks = chunk_all(kb_dir)
     print(f"Total chunks: {len(chunks)}")
     for c in chunks:

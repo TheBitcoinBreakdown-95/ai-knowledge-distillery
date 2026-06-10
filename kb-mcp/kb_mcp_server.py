@@ -1,5 +1,5 @@
 """
-Knowledge Distillery MCP Server.
+Knowledge-Distillery MCP Server.
 Provides semantic search over the KB via FastMCP with 3 tools:
   - search_kb: Hybrid BM25 + vector search with RRF merge
   - list_topics: All topic files with their H2 headings
@@ -39,7 +39,7 @@ SYNONYMS = {
 KB_DIR = Path(os.environ.get("KB_DIR", str(Path(__file__).parent.parent / "Knowledge-Distillery")))
 
 mcp = FastMCP("kb-retrieval", instructions=(
-    "Knowledge Distillery retrieval server. Use search_kb for semantic queries, "
+    "Knowledge-Distillery retrieval server. Use search_kb for semantic queries, "
     "list_topics for an overview, get_section for exact section retrieval."
 ))
 
@@ -108,7 +108,7 @@ def format_result(item: dict, rank: int, full: bool = True) -> str:
 
 @mcp.tool()
 def search_kb(query: str, top_k: int = 5) -> str:
-    """Search the Knowledge Distillery for relevant sections.
+    """Search the Knowledge-Distillery for relevant sections.
 
     Uses hybrid BM25 + vector search with Reciprocal Rank Fusion.
     Returns full text for top 3 results, preview for the rest.
@@ -149,9 +149,9 @@ def search_kb(query: str, top_k: int = 5) -> str:
 
 @mcp.tool()
 def list_topics() -> str:
-    """List all Knowledge Distillery topic files with their section headings.
+    """List all Knowledge-Distillery topic files with their section headings.
 
-    Returns a structured overview of the 12 topic files and their H2 sections,
+    Returns a structured overview of all topic files and their H2 sections,
     useful for understanding what the KB covers before searching.
     """
     table = get_table()
@@ -167,7 +167,7 @@ def list_topics() -> str:
         if h != "Preamble":
             topics[f].append(h)
 
-    parts = ["# Knowledge Distillery Topics\n"]
+    parts = ["# Knowledge-Distillery Topics\n"]
     for fname in sorted(topics):
         stem = fname.replace(".md", "")
         headings = topics[fname]

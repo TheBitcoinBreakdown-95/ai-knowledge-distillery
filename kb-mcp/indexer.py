@@ -5,6 +5,7 @@ Creates FTS index for BM25 search. Supports incremental re-indexing.
 
 import hashlib
 import json
+import os
 import sys
 import time
 from pathlib import Path
@@ -15,7 +16,9 @@ import pyarrow as pa
 
 from chunker import TOPIC_FILES, chunk_all, chunk_file
 
-OLLAMA_URL = "http://localhost:11434/api/embed"
+# Env override exists so tests can point at a dead endpoint and prove
+# embed-before-delete keeps the old chunks intact.
+OLLAMA_URL = os.environ.get("KB_OLLAMA_URL", "http://localhost:11434/api/embed")
 EMBED_MODEL = "mxbai-embed-large"
 EMBED_DIMS = 1024
 BATCH_SIZE = 10
@@ -146,14 +149,16 @@ def reindex_file(kb_dir: Path, filename: str) -> None:
         full_index(kb_dir)
         return
 
-    # Remove old chunks for this file
-    table.delete(f'file = "{filename}"')
-
-    # Chunk and embed the updated file
+    # Chunk and embed the updated file BEFORE deleting existing rows -- an
+    # embedding failure (Ollama down) must not erase this file from search.
     new_chunks = chunk_file(fpath)
     if new_chunks:
         print(f"Re-indexing {filename}: {len(new_chunks)} chunks")
         new_chunks = embed_chunks(new_chunks)
+
+    # Old rows are replaced only after embedding succeeded
+    table.delete(f'file = "{filename}"')
+    if new_chunks:
         table.add(new_chunks)
         # Rebuild FTS index
         table.create_fts_index("text", replace=True)
@@ -190,7 +195,7 @@ def reindex_changed(kb_dir: Path) -> None:
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description="Index KB chunks into LanceDB")
-    parser.add_argument("--kb-dir", help="Path to Knowledge Distillery directory")
+    parser.add_argument("--kb-dir", help="Path to Knowledge-Distillery directory")
     parser.add_argument("--file", help="Re-index a single file")
     parser.add_argument("--changed", action="store_true", help="Re-index only changed files")
     args = parser.parse_args()
