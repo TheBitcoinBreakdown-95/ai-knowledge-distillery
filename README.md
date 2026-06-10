@@ -21,13 +21,13 @@ What this gives you:    articles -> synthesis -> verification -> coaching -> enf
 
 ## What You Get
 
-**12 topic files** covering AI/LLM best practices -- prompting, context engineering, agent design, memory, skills, testing, failure patterns, tools, workflows, project setup, autonomous agents, and community insights. Each file is self-contained, scannable, and cross-referenced.
+**15 topic files** covering AI/LLM best practices -- prompting, context engineering, agent design, memory, skills, testing, failure patterns, tools, workflows, project setup, autonomous agents, community insights, MCP servers, learning resources, and Bitcoin/AI economics. Each file is self-contained, scannable, and cross-referenced.
 
 | Metric | Value |
 |--------|-------|
 | Source files processed | 160+ (articles, threads, course notes, bookmarks) |
 | Topic files | 12 (synthesized, cross-referenced) |
-| Total KB size | ~10,300 lines across 12 topic files |
+| Total KB size | ~10,300 lines across 15 topic files |
 | Concepts (H3 sections) | 550+ |
 | Cross-references | 267 inline links between files |
 | Learning path entries | 30 curated across 4 levels |
@@ -92,12 +92,15 @@ To replace our content with your domain: keep the file structure, clear the topi
 | [agent-design.md](Knowledge%20Distillery/agent-design.md) | 817 | Personas, sub-agents, meta-agent architecture, agent teams |
 | [memory-persistence.md](Knowledge%20Distillery/memory-persistence.md) | 620 | 4-layer memory model, worklogs, cross-session memory, QMD, decision traces |
 | [skills.md](Knowledge%20Distillery/skills.md) | 745 | Skill design, lifecycle, slash commands, skill graphs, thin skills principle |
-| [tools-and-integrations.md](Knowledge%20Distillery/tools-and-integrations.md) | 933 | 16 hook event types, MCP servers, SDK, CI/CD, plugins, voice mode, remote control |
+| [tools-and-integrations.md](Knowledge%20Distillery/tools-and-integrations.md) | ~890 | 16 hook event types, SDK, CI/CD, voice mode, remote control |
+| [mcp-servers.md](Knowledge%20Distillery/mcp-servers.md) | ~485 | MCP configuration, key servers, plugins, browser automation, design tools, Obsidian tooling |
 | [testing-verification.md](Knowledge%20Distillery/testing-verification.md) | 509 | Binary pass/fail, invariants, feedback loops, verification protocols |
 | [failure-patterns.md](Knowledge%20Distillery/failure-patterns.md) | 464 | 4 named patterns (context pollution, plausible echo, premature completion, vision compression) |
 | [project-setup.md](Knowledge%20Distillery/project-setup.md) | 505 | 8 kickoff questions, CLAUDE.md template, /init workflow, settings |
 | [autonomous-agents.md](Knowledge%20Distillery/autonomous-agents.md) | 1077 | 24/7 agents, security hardening, cost anatomy, model routing |
-| [community-insights.md](Knowledge%20Distillery/community-insights.md) | 922 | Community tools, local AI setups, marketing tactics, cool projects |
+| [community-insights.md](Knowledge%20Distillery/community-insights.md) | ~390 | Ecosystem news, curated lists, marketing tactics, industry commentary |
+| [learning-resources.md](Knowledge%20Distillery/learning-resources.md) | ~180 | Courses, roadmaps, guides, AI fluency framework, learning paths |
+| [bitcoin-ai.md](Knowledge%20Distillery/bitcoin-ai.md) | ~95 | Agent wallets, Lightning commerce, machine payments, monetized knowledge |
 
 ### Project Docs (the system)
 
@@ -174,7 +177,7 @@ The KB includes a local MCP server for semantic search, plus `/kickoff` as the p
 |------|-------------|
 | `/kickoff [task]` | Highest-level retrieval -- generates 10-30 queries across the KB based on your project and task, returns a structured brief. [Full guide](Knowledge%20Distillery/kickoff-guide.md) |
 | `search_kb` | Hybrid BM25 + vector search across all KB files. Returns ranked sections. Used by `/kickoff` internally and available for ad-hoc queries. |
-| `list_topics` | Lists all 12 topic files with their H2 headings. Browse before searching. |
+| `list_topics` | Lists all 15 topic files with their H2 headings. Browse before searching. |
 | `get_section` | Retrieves a specific section by file and heading. Fuzzy matching supported. |
 
 ### Why LanceDB

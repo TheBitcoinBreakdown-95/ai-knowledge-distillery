@@ -74,7 +74,7 @@ TEST_CASES = [
 
 
 def get_kb_dir() -> Path:
-    return Path(__file__).parent.parent / "Knowledge Distillery"
+    return Path(__file__).parent.parent / "Knowledge-Distillery"
 
 
 def embed_query(query: str) -> list[float]:

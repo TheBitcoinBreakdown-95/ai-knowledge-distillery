@@ -109,7 +109,7 @@ Both approaches can coexist (project CLAUDE.md + personal rules folder).
 
 **Progressive context via docs/:** Architecture overviews, ADRs, and operational runbooks belong in `docs/` -- Claude knows where truth lives without bloating CLAUDE.md.
 
-*Source: Twitter Bookmarks/2026-03-06-BharukaShraddha-most-people-treat-claude-md.md*
+*Source: Twitter-Bookmarks/2026-03-06-BharukaShraddha-most-people-treat-claude-md.md*
 
 ### WHAT / WHY / HOW Framing
 
@@ -169,6 +169,38 @@ An alternative to putting everything in CLAUDE.md: use shell aliases to inject c
 
 *Source: everything-claude-code/the-longform-guide.md*
 
+### DESIGN.md: Agent-Readable Design Systems via MCP
+
+- Google Stitch introduces DESIGN.md: a portable design system file analogous to CLAUDE.md for UI/design contexts; a coding agent reads it while building so it works within your design system automatically
+- The "specification as context file" pattern extends beyond code into design: PRD → design → code previously required three handoffs; DESIGN.md collapses it to one loop
+*Source: 2026-03-19-PawelHuryn-google-just-shipped-designmd-a-portable-agent-readable-desig.md*
+
+### Three CLAUDE.md Learning Blocks: Self-Evolving Knowledge Architecture
+
+- **Knowledge Architecture block:** Before every task, Claude reads existing knowledge; after, extracts what was learned into domain-specific folders with 3 tiers: raw observations → hypotheses (need more data) → confirmed rules (applied by default); promotion cycle: observation confirmed across sessions → becomes rule; new data contradicts rule → rule demoted back; system self-corrects instead of accumulating stale advice; after one month, 24 project-specific rules emerged from sessions without ever being explicitly written
+- **Decision Journal block:** Before making any significant decision, Claude searches for prior decisions in that area; if found, follows existing reasoning unless new information invalidates it; if not found, logs full context (what was decided, alternatives considered, why this won, trade-offs accepted); equivalent to Architecture Decision Records, but enforced by Claude rather than team discipline; creates traceable chain when decisions are replaced
+- **Quality Gate block:** Concrete testable evaluation criteria specific to your project (not vague aspirations like "be thorough" but specific checks tied to your actual failure patterns); criteria evolve: checks that catch real issues get promoted; checks that consistently fail get demoted; checks that never trigger get flagged for pruning; equivalent to a Definition of Done that tightens weekly instead of gathering dust
+- **Maintenance schedule:** Instruct Claude to periodically suggest a system review -- prune stale rules, check hypothesis evidence, flag criteria that stopped being useful; Claude suggests, you decide when to run
+- Three blocks reinforce each other: Quality Gate catches a pattern → Knowledge Architecture promotes it to a rule → a decision ages badly → journal gets replacement entry with full context
+*Source: 2026-03-31-PawelHuryn-httpstcocraxzjhsmn.md*
+
+### COMP System: Four-File Architecture
+- Standardized four-file context architecture: CLAUDE.md (behavioral contract, agent-facing), ORIENT.md (human-readable orientation for return visits), MEMORY.md (durable cross-session decisions and gotchas), PLAN.md (roadmap with refreshed `## Current State` each session)
+- ORIENT.md is explicitly written for humans, not agents: project description, mental model, common operations, known weirdness, key links -- not a file index
+- No duplication between MEMORY.md and PLAN.md: PLAN.md tracks current phase/state; MEMORY.md captures hard-won lessons that outlast any single plan
+- CLAUDE.md health check: quarterly audit whether every instruction earns its place in always-loaded context; move stale or situational rules to on-demand guides
+- Context Pruning `/prune` command: inventory all CLAUDE.md and MEMORY.md by line count, identify files over threshold, launch parallel analysis agents per file, propose DELETE/MOVE/CONDENSE/KEEP actions -- thresholds: MEMORY.md soft 50, hard 100 lines; active CLAUDE.md soft 200, hard 300
+- (see [context-engineering.md](context-engineering.md#claudemd-your-always-loaded-memory) for the foundational CLAUDE.md design section)
+*Source: claude-code-synthesis/CLAUDE.md, claude-code-synthesis/commands/prune.md*
+
+### CLAUDE.md Personality Customization
+- CLAUDE.md is not just for technical instructions -- it can encode personality, voice, and interaction style as behavioral rules the agent follows every session
+- Prompt template pattern: "Read your CLAUDE.md. Now rewrite it with these changes: [list of personality rules]" -- the agent rewrites its own always-loaded context to embed the new voice
+- Effective personality rules are specific behavioral constraints, not vague adjectives: "Never open with 'Great question'" is enforceable; "be fun" is not
+- Key personality dimensions that work in CLAUDE.md: opinion strength ("commit to a take, stop hedging"), brevity mandates ("if the answer fits in one sentence, one sentence is what I get"), anti-sycophancy rules ("delete every rule that sounds corporate"), humor calibration ("allowed when it lands, not forced"), directness ("if I'm about to do something dumb, say so")
+- Risk: personality rules consume always-loaded context budget -- keep them concise and merge with existing behavioral sections rather than adding a separate personality block
+*Source: bird_output.txt (steipete, 2026-02-09 tweet on CLAUDE.md personality customization)*
+
 ---
 
 ## Auto Memory: Claude's Self-Managed Memory Scratchpad
@@ -219,6 +251,29 @@ When behavior changes, update the documentation. Treat docs as maintained artifa
 ### Progressive Disclosure (Summary First, Details on Demand)
 
 Front-load short summaries. Let Claude drill into source files only when the summary is not enough. This principle applies everywhere -- CLAUDE.md should reference rather than inline, worklogs should be 50-100 lines not 787, and memory plugins should return compact indexes before full observation details.
+
+### On-Demand Domain Guidance via MCP Tool
+- Problem: domain expertise loaded by the outer coding agent is consumed by the wrong agent -- the inner test executor is the one that needs it
+- Solution: MCP `load_guidance` tool; inner agent calls it on demand when it encounters a domain-specific failure
+- Compact TOC in the system prompt (~10 lines) is the routing table -- without it, the agent doesn't know the tool exists or what domains are available
+- Build-time codegen (markdown → TypeScript module) over runtime file reads: deterministic across installs, bundled binaries, and CI -- runtime file resolution is fragile
+- Domain guidance stays in conversation context for the rest of the session -- repeated failures in the same domain don't require re-loading
+- `readOnlyHint: true` on the tool annotation enables parallel execution alongside other read-only tools
+- Cost reduction: loads 0-3 domains per run vs all statically -- ~2000 tokens saved per run on average
+*Source: expect/.specs/agent-domain-guidance.md*
+
+### Agent-First Artifact Design
+- When creating files that agents will later read (ORIENT.md, data schemas, script headers), optimize for agent consumption: frontload key facts, use structured formats, include a one-line purpose statement
+- Corrective framing over reminders: when an agent keeps forgetting something, present a specific possibly-wrong claim that triggers corrective behavior -- mismatches between presented state and actual state create natural correction events
+- After-action reviews: after a project or significant phase, run structured reflection (what worked, root causes, tensions, citing specific files/commits); distill into 3-6 concrete reusable lessons
+- Cumulative best practices with deduplication: when a new lesson overlaps an existing one, merge and increment a reinforcement count -- lessons rediscovered across multiple projects are stronger signals
+*Source: claude-code-synthesis/CLAUDE.md*
+
+### Workspace Isolation Pattern for Multi-Tenant RAG
+- `workspace` parameter on RAG instances provides data isolation between projects using the same storage backend -- implementation varies by storage type (subdirectories, collection prefixes, payload partitioning)
+- Embedding model consistency is a hard constraint: switching models requires clearing vector storage and re-indexing -- changing the embedding model mid-project corrupts the index
+- Most common initialization error: forgetting `await rag.initialize_storages()` after instantiation -- document this as the #1 failure mode in project CLAUDE.md
+*Source: LightRAG/CLAUDE.md*
 
 ---
 
@@ -324,9 +379,16 @@ Practical guidance on managing MCP server impact on context windows:
 - **mgrep plugin** (Mixedbread) provides ~50% token reduction vs ripgrep/grep for code search -- significant context savings on search-heavy workflows
 - **Replace MCPs with CLI-backed skills/commands** where possible to free context window and reduce per-call token cost
 
-This aligns with the "went overboard" warning documented in [tools-and-integrations.md](tools-and-integrations.md#curated-daily-use-mcp-recommendations) but adds the specific numeric thresholds.
+This aligns with the "went overboard" warning documented in [tools-and-integrations.md](mcp-servers.md#curated-daily-use-mcp-recommendations) but adds the specific numeric thresholds.
 
-*Sources: Twitter Bookmarks/The Shorthand Guide to Everything Claude Code 1.md, Twitter Bookmarks/The Longform Guide to Everything Claude Code.md*
+*Sources: Twitter-Bookmarks/The Shorthand Guide to Everything Claude Code 1.md, Twitter-Bookmarks/The Longform Guide to Everything Claude Code.md*
+
+### Context Budget Reality: Fixed Overhead Before Any Task Work
+
+- 5 MCP servers at ~200 tokens/tool definition = ~25k tokens (12.5% of context window) consumed in fixed overhead before any task work begins
+- Subagent isolation value is not parallelism but context separation: large output operations (codebase scans, test runs) go to subagents; main thread receives only the summary
+- Progressive disclosure for skills: descriptors stay in context, full body loads only when triggered -- dramatically reduces baseline context overhead
+*Source: 2026-03-15-HiTw93-httpstcopec3y6sswl.md*
 
 ---
 
@@ -366,7 +428,7 @@ Cache fragility examples: putting a detailed timestamp in the system prompt, shu
 
 Changing the tool set mid-conversation invalidates the entire cached prefix -- even though it seems intuitive to give the model only the tools it needs right now. Plan Mode is implemented as tools, not tool-set changes: `EnterPlanMode` and `ExitPlanMode` are tools the model can call; a system message explains the mode constraints; the tool definitions never change; bonus: the model can autonomously enter plan mode when it detects a hard problem (see [Plan Mode and Think Mode](#plan-mode-and-think-mode)).
 
-When dozens of MCP tools are loaded, use `defer_loading` stubs instead of removing tools -- lightweight name-only entries with `defer_loading: true` that the model discovers via a `ToolSearch` tool; full schemas load only on selection (see [tools-and-integrations.md#tool-search-defer-loading-for-cache-stability](tools-and-integrations.md#tool-search-defer-loading-for-cache-stability)).
+When dozens of MCP tools are loaded, use `defer_loading` stubs instead of removing tools -- lightweight name-only entries with `defer_loading: true` that the model discovers via a `ToolSearch` tool; full schemas load only on selection (see [mcp-servers.md#tool-search-defer-loading-for-cache-stability](mcp-servers.md#tool-search-defer-loading-for-cache-stability)).
 
 If you must switch models, use subagents -- Opus prepares a handoff message for Haiku/Sonnet rather than switching the main conversation's model (which would require rebuilding the entire cache for the new model).
 
@@ -430,6 +492,102 @@ Specific cost benchmarks and environment variable settings for managing Claude C
 (see [project-setup.md](project-setup.md#key-environment-variables) for the full env var reference, [autonomous-agents.md](autonomous-agents.md) for OpenClaw cost optimization)
 
 *Sources: deep-research-report.md, everything-claude-code/docs/token-optimization.md, everything-claude-code/skills/cost-aware-llm-pipeline/SKILL.md*
+
+### Prompt Caching Architecture: Lessons from Building Claude Code
+
+- Prompt caching works by prefix matching: structure prompts as static content first (system prompt, tools, CLAUDE.md) then dynamic content last -- order matters enormously
+- Never add timestamps or shuffle tool order non-deterministically in the static system prompt; both break the cache and cause cascading cost/latency increases
+- Pass dynamic updates (current time, changed files) via a `<system-reminder>` tag in the next user message -- never edit the system prompt mid-session
+- Do not change models mid-session: at 100k tokens into an Opus session, switching to Haiku is MORE expensive because the Haiku cache must be rebuilt from scratch; use subagents for model switching instead
+- Never add or remove tools mid-session; use `defer_loading: true` stubs instead of removing tools to preserve cache stability
+- Monitor cache hit rate like uptime: Claude Code declares SEVs when the cache hit rate drops; a few percentage points of miss rate dramatically affects cost and rate limits
+*Source: 2026-02-19-trq212-httpstcotavrqwm4dg.md*
+
+### Claude Code Internal Architecture: 9 Source Code Insights
+
+- **CLAUDE.md loaded every turn** (not just session start): re-read on every query iteration; 40K character limit; most people use 200; put architecture decisions, file conventions, testing patterns, "never do this" rules; this is the difference between a generic assistant and YOUR assistant
+- **Subagent prompt cache sharing:** When Claude forks a subagent it creates a byte-identical copy of parent context; API caches this; spawning 5 agents costs barely more than 1 agent sequentially because all hit the prompt cache; three execution models: fork (inherits context, cache-optimized), teammate (separate tmux/iTerm pane, file-based mailbox communication), worktree (isolated git branch per agent)
+- **5 compaction strategies** (context overflow is a central engineering problem): microcompact (time-based clearing of old tool results), context collapse (summarizes conversation spans), session memory (extracts key context to file), full compact (summarizes entire history), PTL truncation (drops oldest message groups)
+- **1M token window:** opt in via `[1m]` model suffix; useful for large refactors across many files
+- **Large tool results stored to disk:** only an 8KB preview sent to the model; if you paste a massive file, the model may only see a fraction; keep inputs focused
+- **Permission system:** 5-level settings cascade; three modes: bypass (no checks, dangerous), allowEdits (auto-allows edits in working directory), auto (LLM classifier races multiple resolvers in parallel -- user click, hook classifier, bridge -- first to respond wins)
+- **Session memory extraction:** preserves task specs, file lists, workflow state, errors, and learnings across compactions; `--continue` resumes from accumulated context; `--resume` picks a specific session; `--fork-session` branches from a past conversation
+- **60+ tools, smart batching:** concurrent execution for read-only operations (read, search, glob), serial for mutating operations (edits, writes, bash); MCP tools use deferred loading, so connecting 5 MCP servers doesn't slow every request
+- **Streaming is async generators:** Escape cleanly aborts current stream without losing previous context; zero penalty for interrupting and redirecting; use this actively (pair programming principle: redirect immediately when going wrong)
+*Source: 2026-03-31-mal_shaik-httpstcopkhtg8rhvf.md*
+
+### Backend Context Engineering: 3x Cost Reduction via Skills+CLI vs MCP-Heavy
+@_avichawla's empirical comparison building DocuRAG (RAG app: Google OAuth + PDFs + pgvector + edge functions) on Supabase vs InsForge with Claude Code. Same model, same prompt, same task. Result: 10.4M tokens / $9.21 / 12 user msgs (10 error reports) on Supabase vs 3.7M tokens / $2.81 / 1 user msg on InsForge.
+
+- **The counterintuitive observation:** MCPMark V2 benchmarks show Sonnet 4.6 used MORE backend tokens than Sonnet 4.5 (11.6M → 17.9M across 21 DB tasks). The smarter model didn't skip context gaps -- it spent more tokens reasoning about the gap, ran more discovery queries, and retried more frequently. **A more capable model makes incomplete backend context MORE expensive, not less.**
+- **Three mechanisms causing token bloat in MCP-heavy backends:**
+  1. **Documentation retrieval returns everything** -- Supabase's `search_docs` MCP tool dumps 5-10x more than the agent needs (e.g., asks for OAuth → gets entire auth docs including email/SAML/SSO/etc.)
+  2. **No visibility into backend state** -- agent can't see the dashboard. Supabase MCP exposes piecemeal tools (list_tables, execute_sql) but no "what does my backend look like right now?" structured response. Agent pieces it together via multiple calls; some info (e.g., auth providers configured) isn't available via MCP at all.
+  3. **No structured error context** -- raw error messages without dashboard/log cross-reference. Agent guesses, retries, re-sends entire conversation history each time, compounds cost.
+- **Three-layer alternative (Karpathy context engineering applied to backend):**
+  - **Skills for static knowledge** -- load directly into context at session start, progressive disclosure (metadata only loads ~70-150 tokens until activation), narrowly scoped (frontend, CLI, debug, integrations) so only the relevant skill activates per task
+  - **CLI for direct execution** -- `--json` structured output, `-y` skips confirmations, semantic exit codes for programmatic detection (auth fail, missing project, perm error). Pipes through jq/grep/awk in one shell line. Scalekit benchmarks: CLI+Skills hit ~100% success rates with 10-35x better token efficiency than MCP for single-user workflows.
+  - **MCP for live state** -- narrow purpose: inspect changing backend state (one `get_backend_metadata` call returns full topology in ~500 tokens with `hints` field for agent guidance). NOT for documentation retrieval.
+- **Inversion of typical pattern:** MCP for state (which changes), CLI for execution, Skills for knowledge. Most setups invert this and burn tokens.
+- **Supabase failure trace from the experiment:** 8 rounds debugging an upstream `verify_jwt` gate rejection -- agent saw 401s but couldn't tell that the platform was rejecting requests before the function code ran. Each retry redeployed function + checked logs + re-sent growing conversation history.
+- **Generalizable insight:** if your agent is spending tokens discovering how your backend works, guessing configurations, retrying because errors don't say what failed -- you're paying for missing context. Fix is structured information BEFORE the agent writes code, not a better model or longer context window.
+- (see [agent-design.md > Coordination Tax](agent-design.md#the-coordination-tax-why-more-agents-often-means-worse-output) for adjacent point about MCP/agent overhead; see [tools-and-integrations.md > 10 Token-Saving Tools](tools-and-integrations.md#10-token-saving-tools-for-claude-code) for client-side complement)
+
+*Source: 2026-04-21-_avichawla-httpstcoxw9vh2zpp5.md*
+
+### Stochastic + Deterministic -- The Pairing That Eliminates Hallucination (Andrew Orobator Pt 8)
+The pattern that explains why GraphQL works for AI agents and REST doesn't. Generalizes to every tool integration choice.
+
+**The bug pattern:**
+- AI generates `user.avatarUrl` instead of `user.avatar_url`. Both look right. Compiles fine. Type checks. Fails at runtime as `undefined`.
+- AI is doing what LLMs do: generating plausible text. `avatarUrl` is plausible. It's just wrong.
+- Two days later: `event.startDate` instead of `event.start_date`. Same class of bug. Same invisible failure.
+- Hours burned not on complex logic -- just checking field names against API docs.
+
+**The fix -- pair stochastic generation with deterministic validation:**
+- Stochastic + Stochastic = LLM generates REST call → REST accepts whatever JSON → errors at runtime. Variance compounds at every layer.
+- Stochastic + Deterministic = LLM generates GraphQL query → schema validates every field at build time → errors immediate. **The deterministic layer constrains the output space.**
+
+**Three currencies you spend on AI-assisted dev:**
+1. **Tokens** (what you pay the model)
+2. **Latency** (what you wait)
+3. **Correctness** (what you debug when neither caught the error)
+
+When the AI generates output a deterministic tool can validate instantly, you save across all three. At team scale, this stops being rounding errors.
+
+**Tactical examples:**
+- Schema-constrained APIs over unconstrained JSON (GraphQL > REST for AI agents)
+- CLI scripts over MCP for hot paths (predictable output, predictable cost, sub-second latency)
+- Direct protocol access over tool-by-tool orchestration (Playwright via tsx = 50ms/action vs MCP browser automation 2-5sec/action; 10-50x faster)
+- Type systems (Kotlin null-safety, Rust borrow checker) -- any constraint that catches errors before runtime saves tokens, time, debugging
+
+**Claude's own take from the article:** "When I generate a GraphQL query, the schema tells me exactly which fields exist -- I don't have to guess. The constraint is a gift -- it shrinks the problem space so I spend tokens on reasoning, not exploration."
+
+**The principle:** **deterministic tools don't limit what the AI can do. They limit what it can get wrong.**
+
+*Source: Andrew-Vibe-Coding/Vibe Engineering From Random Code to Deterministic Systems (Part 8).md*
+
+### Hot Paths vs Cold Paths -- Where to Invest in Determinism (Andrew Orobator Pt 8)
+Not every workflow needs optimization. The pattern that matters is **frequency**.
+
+- **Hot paths** = run many times per day across many engineers. JIRA fetches on every PR/review/sprint. Browser automation on every test suite. Where 99x token overhead or 10x latency penalty compounds into real cost.
+- **Cold paths** = run rarely but high value per execution. Complex refactor. Architecture decision doc. Deep-dive research. Fuzzy discovery across unknown systems. The AI's full reasoning IS the point -- you're buying insight, not fetching data.
+- **Cold-path tools that earn their token cost:** Glean MCP (cross-corpus search across JIRA + Confluence + Slack + docs in one query); Figma MCP (the only way agents can read design files at all).
+- **The mistake:** treating hot paths like cold paths. "The AI can figure it out" is true for discovery and wasteful for data fetches running hundreds of times/week.
+
+**Hot-path optimization rule:** pre-compute, cache, or script anything that runs more than a few times per day. The investment pays for itself immediately.
+
+**The "scripts break" objection -- and the rebuttal:**
+- "Scripts are another thing to maintain. APIs change. The script breaks."
+- In practice: JIRA-fetching scripts need updates <1x/quarter. When JIRA API changes, fix takes ~15 minutes. **The AI fixes the scripts.** "This script is returning an error. The JIRA API changed the response format. Update it." Done.
+- Even easier: use the official CLI (Atlassian's `acli`). Same deterministic output, zero maintenance burden -- vendor maintains the CLI.
+- **One-time fixes beat continuous waste.**
+
+**The 100x tax confirmation:** 342,082 tokens to fetch 5 JIRA tickets via MCP vs 3,424 tokens via bash script. 99% of the MCP response was schema metadata, null fields, rendered HTML the agent never used. MCP is stochastic-to-stochastic (LLM asks → massive blob → LLM interprets). Script is stochastic-to-deterministic (LLM calls → clean markdown → acts immediately).
+
+**Org-scale math:** team of 10 × 50 sessions/day × 2,000 wasted tokens/session = 1M tokens/day waste = $1,000-5,500/year. Scale to 270 engineers across 3 platforms: a single decision (replacing Atlassian MCP with CLI tools) saved an estimated $44K/year. Most teams don't track token cost per workflow -- it's invisible until the invoice arrives, by which point inefficient patterns are embedded in muscle memory.
+
+*Source: Andrew-Vibe-Coding/Vibe Engineering From Random Code to Deterministic Systems (Part 8).md*
 
 ---
 
@@ -518,7 +676,14 @@ From practitioners using Cowork (and applicable to any AI tool that ingests fold
 - **Fix:** Create a `_MANIFEST.md` in any working folder that declares: which documents are source of truth, which subfolders map to which domains, and what to skip entirely
 - **Claude Code Equivalent:** This is the working-folder analog of `.claude/rules/` path-scoped rules -- both solve context pollution but for different environments (see [Rules Directory](#rules-directory-path-specific-scoping))
 
-*Source: Twitter Bookmarks/2026-03-01-heynavtoor-17-best-practices-claude-cowork.md*
+*Source: Twitter-Bookmarks/2026-03-01-heynavtoor-17-best-practices-claude-cowork.md*
+
+### Context Discipline: Separation of Research from Implementation
+
+- Give a fresh-context agent the specific implementation ("JWT with bcrypt-12, refresh token rotation with 7-day expiry") rather than "build an auth system" -- separate research sessions from implementation sessions
+- Context is everything: too many plugins, memory systems, and skills cause "context bloat" -- the agent is trying to help with one task while reading rules from 71 sessions ago
+- New session per contract beats 24-hour running sessions: long sessions force context bloat from unrelated contracts; orchestration layer creates a new session per contract
+*Source: 2026-03-03-systematicls-httpstcowbakpai5vl.md*
 
 ---
 
@@ -582,7 +747,7 @@ An open-source tool that creates a persistent context layer across sessions, dev
 - Solves the "single .md file is too general" problem: a single summary file loses detail, but loading everything bloats context. OneContext provides progressive disclosure at the context layer.
 - Install: `npm i -g onecontext-ai` (macOS only initially)
 
-(see [community-insights.md](community-insights.md) for full tool details, [memory-persistence.md](memory-persistence.md) for related patterns)
+(see [tools-and-integrations.md](tools-and-integrations.md#onecontext-cross-session-agent-context-layer-jundemorsenwu) for full tool details, [memory-persistence.md](memory-persistence.md) for related patterns)
 
 ---
 

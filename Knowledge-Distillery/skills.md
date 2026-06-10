@@ -124,7 +124,7 @@ with zipfile.ZipFile(output_file, 'w') as z:
 
 Skills are installable beyond manual file creation. In Claude Code, `/plugin install` pulls from official and third-party marketplaces. Skills also work on Claude.ai (manual upload) and via the Claude API (Skills API Quickstart), making them portable across three surfaces.
 
-Anthropic's `skills` repo provides source-available reference implementations for document creation (docx, pdf, pptx, xlsx) -- valuable as learning patterns for complex skills. Note: reference implementations "may differ from Claude's production implementations," so do not assume parity when debugging skill behavior. The Agent Skills specification is maintained externally at agentskills.io, not embedded in any single codebase. Partner skills (e.g., Notion) demonstrate skill standardization across SaaS ecosystems (see [tools-and-integrations.md#plugin-system-and-marketplaces](tools-and-integrations.md#plugin-system-and-marketplaces)).
+Anthropic's `skills` repo provides source-available reference implementations for document creation (docx, pdf, pptx, xlsx) -- valuable as learning patterns for complex skills. Note: reference implementations "may differ from Claude's production implementations," so do not assume parity when debugging skill behavior. The Agent Skills specification is maintained externally at agentskills.io, not embedded in any single codebase. Partner skills (e.g., Notion) demonstrate skill standardization across SaaS ecosystems (see [mcp-servers.md#plugin-system-and-marketplaces](mcp-servers.md#plugin-system-and-marketplaces)).
 
 ### Skill String Substitutions
 
@@ -190,7 +190,7 @@ Two integration approaches: **filesystem-based** (skills activated via `cat /pat
 - Reference implementation: `skills-ref` Python library with validation CLI (`skills-ref validate`, `skills-ref xml`)
 - Key insight: frontmatter-only loading at startup keeps initial context cost low; full skill content loaded only when activated (see [context-engineering.md](context-engineering.md#progressive-disclosure-summary-first-details-on-demand))
 
-*Source: Twitter Bookmarks/Integrate skills into your agent.md*
+*Source: Twitter-Bookmarks/Integrate skills into your agent.md*
 
 ### Skill vs Agent vs Command Comparison
 
@@ -219,7 +219,7 @@ Definitive three-type taxonomy for Claude Code plugin extensions:
 - **Supporting file organization:** `references/` (docs loaded on demand), `examples/` (few-shot examples), `scripts/` (executable tools) -- SKILL.md must explicitly reference these or Claude won't know they exist
 - **Plugin manifest:** `.claude-plugin/plugin.json` defines the plugin; `.mcp.json` at plugin root declares MCP server dependencies
 
-(see [Skills Frontmatter: Complete Field Reference](#skills-frontmatter-complete-field-reference) for field details; see [tools-and-integrations.md](tools-and-integrations.md#plugin-auto-discovery-mechanism-and-portable-paths) for discovery mechanics)
+(see [Skills Frontmatter: Complete Field Reference](#skills-frontmatter-complete-field-reference) for field details; see [tools-and-integrations.md](mcp-servers.md#plugin-auto-discovery-mechanism-and-portable-paths) for discovery mechanics)
 
 *Sources: claude-plugins-official/plugins/example-plugin/README.md, claude-plugins-official/plugins/example-plugin/skills/example-skill/SKILL.md*
 
@@ -234,7 +234,7 @@ Validation constraints and design patterns for creating Claude Code plugin agent
 - **AI-assisted agent generation:** the agent-development skill includes Claude Code's own agent-creation system prompt as a reference, enabling "agents that create agents" -- feed a natural language description, get valid frontmatter + system prompt
 - **Agent namespacing in plugins:** agents are prefixed with plugin name (e.g., `my-plugin:review-agent`) to avoid cross-plugin collisions
 
-(see [Skills Frontmatter: Complete Field Reference](#skills-frontmatter-complete-field-reference) for the shared frontmatter fields; see [tools-and-integrations.md](tools-and-integrations.md#plugin-system-and-marketplaces) for plugin packaging)
+(see [Skills Frontmatter: Complete Field Reference](#skills-frontmatter-complete-field-reference) for the shared frontmatter fields; see [mcp-servers.md](mcp-servers.md#plugin-system-and-marketplaces) for plugin packaging)
 
 *Source: claude-plugins-official/plugins/plugin-dev/skills/agent-development/SKILL.md*
 
@@ -249,7 +249,135 @@ Validation constraints and design patterns for creating Claude Code plugin agent
 
 (see [context-engineering.md](context-engineering.md#progressive-disclosure-summary-first-details-on-demand) for the progressive disclosure pattern that skill graphs apply recursively)
 
-*Source: Twitter Bookmarks/2026-02-18-arscontexta-httpstcoxmyso3mc8f.md (@arscontexta)*
+*Source: Twitter-Bookmarks/2026-02-18-arscontexta-httpstcoxmyso3mc8f.md (@arscontexta)*
+
+### Skill Systems: Connecting Skills into Autonomous Pipelines
+
+- A skill is a unit (does one thing); a plugin/skill system is an architecture (multiple skills sharing context, passing output between each other)
+- Three connective patterns: (1) shared context files (brand-voice.md loaded by every skill), (2) output-as-input chaining (Skill A writes to file; Skill B reads it), (3) scheduled orchestration
+- Build skills individually and test each connection manually before adding scheduling; designing the whole system upfront leads to rebuilds
+- Log every handoff: each skill writes to a run log -- without logs you debug blind across a multi-step pipeline
+- Heuristic: "how" question = command; "what" question = skill; business process = plugin
+*Source: 2026-03-09-NickSpisak-httpstcowp3gidzlka.md*
+
+### Fully-Qualified Agent Namespacing in Skills
+
+- When referencing agents from skill files (via Agent/Task tool), always use fully-qualified namespace: `plugin-name:category:agent-name`
+- Short names fail when the plugin is installed alongside others that define agents with the same short name -- runtime resolution failure, not a design preference
+- Pattern: namespace agents under the plugin identifier to guarantee uniqueness across installed plugins
+*Source: compound-engineering-plugin/AGENTS.md*
+
+### SKILL.md Frontmatter: Trigger Design Patterns
+
+- Description field is ONLY for triggering conditions -- never for summarizing the skill's process; agent reads it to decide "should I load this right now?"
+- Dual-use scope declarations: "Use when the user asks to interact with their Obsidian vault... OR develop and debug Obsidian plugins" -- declaring multiple trigger contexts upfront
+- Negative triggers prevent misuse: "Do NOT use for URLs ending in `.md` -- those are already markdown, use WebFetch directly"
+- Good descriptions use "when" twice for different contexts; bad descriptions use "how to" language
+- Under 200 characters for frequently-loaded skills
+- (see [skills.md#the-description-field-how-triggers-work](skills.md#the-description-field-how-triggers-work) for the foundational rule)
+*Source: obsidian-skills/skills/*/SKILL.md*
+
+### Skills as the Center of Gravity -- Knowledge Lives in One Place (Andrew Orobator Pt 7, 2026-03-09)
+Reddit Android team rolling out AI infrastructure to ~60 contributors. Lessons from a real cleanup-disaster.
+
+**The cleanup disaster (root cause = scattered/duplicated/contradictory instructions):**
+- 3 commands existed for "clean up an experiment flag." Each had its own version of the cleanup logic.
+- Command 1 stripped the flag but left orphaned imports. Command 2 removed imports but missed test fixtures. Command 3 handled both but used a deprecated module path from 6 months ago.
+- 3 engineers, 3 commands, 3 different "correct" cleanup patterns. Reviewers couldn't tell which was right. Trust in the tooling collapsed.
+- The AI followed instructions perfectly. The instructions were the problem.
+
+**The rule:** **knowledge lives in one place.** Commands orchestrate. Skills teach. If a command contains business logic, it diverges the moment someone copies it.
+
+```
+Command ──▶ SKILL ◀── Rule
+(workflow) (knowledge) (auto-trigger)
+```
+
+- **Skills** = domain knowledge (patterns, examples, gotchas, quick references). Follow the Agent Skills open standard. Portable across Cursor, Claude CLI, etc.
+- **Commands** = tell the agent which skills to load + what workflow to follow. (Cursor-specific via `/command-name`.)
+- **Rules** = deterministic auto-loading ("when in `*Test.kt`, load the `unit-tests` skill"). Cursor-specific.
+
+**Wrong way -- logic in the command:**
+```
+1. Get experiment name
+2. Remove the flag constant from Experiments.kt
+3. Find all if/else branches using the flag
+4. Delete the disabled branch, keep the enabled
+5. Remove orphaned imports
+6. Create PR
+```
+Steps 2-5 are cleanup logic. When rules change, you have to find every command that inlined them. You won't.
+
+**Right way -- command orchestrates, skill teaches:**
+```
+1. Get experiment name and final state
+2. Load the experiment skill: Read .agents/skills/experiments/experiment/SKILL.md
+3. Find all usages of the experiment
+4. Apply cleanup patterns from the skill
+5. Validate (compile, lint)
+6. Create PR
+```
+Command = 20 lines. Skill = 200+ lines of patterns/edge-cases/heuristics. **One place to update; zero divergence.**
+
+*Source: Andrew-Vibe-Coding/Vibe Engineering From Random Code to Deterministic Systems (Part 7).md*
+
+### Skills as Distilled Domain Judgment (CODEOWNERS Pattern) (Andrew Orobator Pt 7, 2026-03-09)
+Skills aren't documentation. They're encoded **taste and judgment** from domain experts. The CODEOWNERS pattern enforces that ownership.
+
+**The ownership problem:**
+- Platform team owns the API; doesn't want to maintain AI docs on top of human docs
+- Feature teams use the API; don't want stale skills pointing to outdated endpoints
+- AI infra maintains skill format; doesn't have domain expertise
+- Everyone has a reason NOT to own it. So it rots.
+
+**Domain-folder + co-ownership solution:**
+```
+.agents/skills/
+├── experiments/
+│   ├── CODEOWNERS          → @experiments-team @ai-infra
+│   ├── experiment/SKILL.md
+│   └── killswitch/SKILL.md
+├── ui/
+│   ├── CODEOWNERS          → @ui-team @ai-infra
+│   ├── a11y-review/SKILL.md
+│   └── screenshot-tests/SKILL.md
+└── ads/
+    ├── CODEOWNERS          → @ads-team @ai-infra
+    └── ads-killswitch/SKILL.md
+```
+
+**Why co-ownership matters:**
+- Experiments team knows which cleanups are risky -- their skill encodes 2 years of post-mortems
+- UI team knows which a11y violations ship incidents -- their skill reflects production pain
+- Ads team knows kill switch semantics for monetization -- their patterns prevent revenue loss
+- AI infra co-owns for skill quality + structure governance (progressive disclosure, no 500-line bloat)
+
+**The anti-pattern:** AI infra writes all the skills. Documentation looks good but misses critical edge cases. The experiments team opens a PR, the skill says do X, they know X is wrong in this case, and now they don't trust any skills.
+
+*Source: Andrew-Vibe-Coding/Vibe Engineering From Random Code to Deterministic Systems (Part 7).md*
+
+### Personal vs Team Skills + The Graduation Path (Andrew Orobator Pt 7, 2026-03-09)
+Not everything should be shared. Two-tier system + a graduation rule.
+
+- **Team skills** (`.agents/skills/`, committed to repo) -- graduated patterns that work for everyone
+- **Personal skills** (`~/.cursor/skills/`, global user dir) -- experimental skills, advanced setups, machine-specific configs. Persists across all your projects.
+- Cursor checks both locations; team skills are project-specific, personal skills follow you everywhere.
+
+**Graduation rule (4 steps):**
+1. Start in personal skills -- prove the pattern works for you
+2. Use it 5+ times -- validate it's actually reusable
+3. Generalize it (remove project-specific assumptions)
+4. Move to `.agents/skills/<domain>/` -- now everyone has it
+
+**Examples:**
+- Skill for deploying your personal blog (your hosting commands, your domain) → stays personal
+- Skill for Android screenshot testing → graduates because every Android engineer needs it
+
+**The compounding effect:** the first person to encode a pattern (experiment cleanup, screenshot testing, a11y review) gives that knowledge to every future teammate for free. **Solo productivity gains are linear; team knowledge gains are multiplicative.**
+
+**"Neo's instant kung fu download":** when a new teammate opens a project in any AI-enabled editor, they immediately have all team skills loaded when relevant + workflow commands available + MCP servers configured + docs the AI can reference. No setup. No onboarding docs.
+
+*Source: Andrew-Vibe-Coding/Vibe Engineering From Random Code to Deterministic Systems (Part 7).md*
 
 ---
 
@@ -393,7 +521,7 @@ Skills benefit from semantic versioning and changelogs to track their evolution 
 | v2.2.0 | Quick mode, `--from`, `--quality`, cost display | Cost awareness, noise reduction, UX polish |
 | v2.3.0 | Purged stale LLM training data, security docs | **Critical:** LLMs hallucinate old API pricing -- skills must contain accurate reference data |
 
-Each version encodes a lesson. The changelog is a compressed history of mistakes and refinements -- a skill-level equivalent of the Mistake -> Lesson -> Skill -> Prevention cycle (see [The Skill Lifecycle](#the-skill-lifecycle-mistake-lesson-skill-prevention)).
+Each version encodes a lesson. The changelog is a compressed history of mistakes and refinements -- a skill-level equivalent of the Mistake -> Lesson -> Skill -> Prevention cycle (see [The Skill Lifecycle](#the-skill-lifecycle-mistake---lesson---skill---prevention)).
 
 ### Designing Scripts for Agentic Use
 
@@ -429,7 +557,7 @@ Pin versions in all cases. Use `uv lock --script` for full reproducibility in Py
 **One-off commands (no scripts/ directory needed):**
 When an existing package does what you need, reference it directly in SKILL.md using auto-resolving runners: `uvx`, `npx`, `bunx`, `deno run`, `go run`. Pin versions (e.g., `npx eslint@9.0.0`). Move complex multi-flag commands into `scripts/` for reliability.
 
-(see [The Skill Lifecycle](#the-skill-lifecycle-mistake-lesson-skill-prevention) for when to promote prompt-only instructions to scripts)
+(see [The Skill Lifecycle](#the-skill-lifecycle-mistake---lesson---skill---prevention) for when to promote prompt-only instructions to scripts)
 
 ### Skill Creation Methodology: Eval-Driven Iteration Loop
 
@@ -457,6 +585,186 @@ When an existing package does what you need, reference it directly in SKILL.md u
 ### The Skill Lifecycle: Mistake -> Lesson -> Skill -> Prevention
 
 Example: a payment service uses Zod to validate env vars. Claude added new env vars to code and `.env` but forgot the Zod schema. Runtime error: "Invalid NWC connection string" (not "missing env var"). Fix was one line. The lesson became a 50-line `env-var-discipline` skill: "When adding environment variables, update the Zod schema FIRST, then `.env.example`, then `.env`, then code." Bug class eliminated.
+
+### Natural Language Trigger Table: Routing Skill Invocation
+
+A pattern for skill CLAUDE.md files: map natural language user phrases to specific internal workflows using a trigger table.
+
+```markdown
+| User says something like...              | Do this              |
+|------------------------------------------|----------------------|
+| "Who is @user?" / "Tell me about @user"  | **Insight** workflow |
+| "What's trending?" / "What's hot in X?"  | **Radar** workflow   |
+| "Compare @user1 and @user2"              | **Compare** workflow |
+```
+
+The trigger table serves as routing logic, not documentation -- it tells the skill *when* to activate specific sub-workflows. Extends the negative-example principle: positive triggers narrow activation, negative examples prevent false fires.
+
+**Key output principles:** Never dump raw API/JSON responses to the user -- always synthesize into actionable insights. Combine results from multiple endpoint calls into one cohesive analysis. Cache paid data to avoid paying twice. On flaky endpoints: retry once on 502 before reporting failure.
+
+**Why this matters:** A skill without a trigger table relies entirely on its description paragraph, which forces Claude to parse prose. A trigger table is machine-readable routing -- reduces ambiguity and improves activation accuracy.
+
+*Source: socialclaw/CLAUDE.md*
+
+### Skills in the Six-Layer Framework: Frequency and Descriptors
+
+- Skills are on-demand workflow packages: descriptors stay in context, full body loads only when triggered; frequency rule: >1/session = keep auto-invoke + optimize descriptor; <1/session = disable auto-invoke; <1/month = remove skill, document in AGENTS.md
+- The description field is for the model (triggers auto-invoke), not users; it should answer "when should this skill be used?" not "what does this skill contain?"
+- On-demand hooks: skills can register hooks that activate only when the skill is called and last for the session
+- Memory within skills: store state in log files or SQLite in `${CLAUDE_PLUGIN_DATA}` -- a standup-post skill that keeps standups.log can report what changed since yesterday
+*Source: 2026-03-15-HiTw93-httpstcopec3y6sswl.md*
+
+### Official Anthropic Guide: How to Build and Use Claude Code Skills
+
+- Skills are folders, not just markdown files: include scripts, reference code, data files, assets, and templates -- this is what separates skills from saved prompts
+- Nine skill categories in production at Anthropic: Library/API Reference, Product Verification, Data Fetching, Business Process Automation, Code Scaffolding, Code Quality, CI/CD, Runbooks, Infrastructure Operations
+- The Gotchas section is the highest-signal content in any skill: build it from actual failure points Claude encounters; update it over time as edge cases emerge
+- Progressive disclosure pattern: SKILL.md defines task semantics; supporting files (references/, assets/, scripts/) provide domain details loaded only when needed
+- Skill Creator tool now available in Claude Code to make skill creation easier
+*Source: 2026-03-17-trq212-httpstco45c3gkydtk.md*
+
+### Autoresearch: Auto-Improving Skills via Iterative Scoring Loops
+
+- Autoresearch method: agent tests a skill, scores output against a yes/no checklist, makes one small change, keeps if score improves, reverts if not, repeats until 95%+ three times in a row
+- Checklist design is the only human input: 3-6 specific yes/no questions; more than 6 causes the skill to game the checklist
+- Demonstrated: landing page copy skill improved from 56% to 92% pass rate in 4 rounds; the changelog is the most valuable artifact -- hand it to a smarter model in the future
+- Method generalizes: page load time (1100ms to 67ms in 67 rounds), cold outreach copy, newsletter intros -- any repeated prompt that can be scored
+- Original skill stays untouched; improved version saves as a separate file with full backup -- safe to run and revert
+(see [testing-verification.md](testing-verification.md) for the Three Gulfs framework to pair with autoresearch)
+*Source: 2026-03-17-itsolelehmann-httpstcokgo8wnoidv.md*
+
+### TDD for Skills: Iron Law and Rationalization Tables
+
+- No skill without a failing test first: run the target task WITHOUT the skill, document exact rationalizations/shortcuts/skipped steps -- write the skill only to address those specific failures
+- RED: run without skill, document failures. GREEN: write minimal skill. REFACTOR: find new rationalizations the agent invents, close loopholes, re-test
+- Rationalization table: every excuse the agent made in the RED phase becomes an explicit counter in the skill -- "if you catch yourself thinking X, stop and follow the checklist"
+- Instructions budget: models reliably follow ~150 instructions total; system prompt burns ~50; every instruction added degrades compliance across ALL instructions
+- Peripheral position rule: first and last sections receive disproportionate attention; critical rules buried in the middle get skipped
+- Hypothetical failure prevention is worthless -- skills written without RED-phase testing address imagined problems, not real ones
+- (see [skills.md#skill-creation-methodology-eval-driven-iteration-loop](skills.md#skill-creation-methodology-eval-driven-iteration-loop) for the existing eval-driven approach)
+*Source: expect/.agents/skills/skill-writing/SKILL.md, superpowers/skills/writing-skills/SKILL.md*
+
+### Bulletproofing Skills Against Agent Rationalization
+
+- Agents invent reasons to skip rules; every mandatory rule needs an explicit "no exceptions for [specific rationalizations]" closure
+- Unconditional beats conditional: "You MUST call X" works; "when appropriate, consider X" does not
+- Specificity drives compliance: "call `accessibility_audit` before emitting `RUN_COMPLETED`" vs "consider running audits"
+- Never use "relevant," "appropriate," or "if needed" -- name tools and commands exactly
+- Banned skill description patterns: summarizing the workflow ("write test first, watch it fail...") → causes agents to follow the summary instead of reading the full skill
+- Good skill descriptions describe triggering CONDITIONS, not process: symptoms, error messages, synonyms, tool names, command names
+*Source: expect/.agents/skills/skill-writing/SKILL.md*
+
+### Skill Deduplication: Absorb vs. Invoke
+
+- When two skills have conceptually overlapping purposes, prefer absorbing the subordinate skill's logic into the primary as a new phase over invoking it as a sub-skill -- eliminates a skill boundary and simplifies maintenance
+- Standalone sub-skills should be removed once absorbed; resume mode on the primary skill handles re-running
+- Self-gating logic (confidence scoring, scope gates) should live in the primary skill -- the user cannot evaluate "should I deepen?" better than the agent can
+- Rule of thumb: if skill B is only ever invoked by skill A, absorb it
+*Source: compound-engineering-plugin/docs/brainstorms/2026-03-26-merge-deepen-into-plan-requirements.md*
+
+### Headless Mode: Making Skills Pipeline-Composable
+
+- Skills designed only for interactive sessions cannot be composed by automated callers -- headless mode enables programmatic invocation
+- `mode:headless` argument suppresses interactive prompts, applies safe auto-fixes silently, returns structured output with standard envelope format
+- Structural consistency between skills (same section headings, severity grouping, completion signal) lets callers use a similar consumption pattern across multiple skills, even when per-finding schemas differ
+- Design: structural consistency over schema compatibility -- callers need to handle skill-specific finding fields, but can parse the envelope the same way
+- Headless mode is not a fourth mode -- it is an overlay that modifies existing behavior
+*Source: compound-engineering-plugin/docs/brainstorms/2026-03-28-ce-review-headless-mode-requirements.md*
+
+### Modular Script Architecture for Skills
+
+- Decompose scripts into focused modules (env, dates, cache, http, models, normalize, score, dedupe, render, schema) -- each concern isolated, individually testable and swappable
+- 24-hour TTL cache keyed by topic + date range: skills that hit external APIs should cache aggressively to avoid re-fetching identical data within a session
+- Parallel tool invocation at the Python layer (ThreadPoolExecutor) rather than relying on Claude to parallelize -- more predictable and cheaper
+- Automatic model fallback chain with TTL-cached model list -- skills that call external LLMs should handle model availability gracefully
+- `lib/__init__.py` must be a bare package marker with no eager imports -- avoids import side effects on skill load
+*Source: last30days-skill/SPEC.md, last30days-skill/docs/how-search-works.md*
+
+### Self-Improving Skill Files That Compound
+
+- Skill files are markdown docs that onboard the agent like a new hire -- be specific, include examples, document every mistake
+- Contents: platform-specific formats, outreach templates (successful and failed), hook formulas (hits and flops), SEO brief structures, anchor text rotation rules, per-platform tone guides, DM templates
+- When something fails, add a rule. When something succeeds, add a formula. Agent never repeats the same mistake
+- Setup: `/skills` folder, one file per workflow. Start at 20-30 lines; grows to 500+ within a week of iteration
+
+*Source: Clawdbot-aka-Openclaw/Research/Vibeclawdbotting every possible use case to market and sell using Clawdbot.md*
+
+### Skills 2.0: Evals, A/B Benchmarking, and Description Optimization
+- Skills 2.0 adds three capabilities to the Skill Creator: evals (pass/fail test prompts that measure whether a skill's instructions are actually followed), A/B comparisons (skill-on vs skill-off blind evaluation by an independent comparator), and description optimization (automated search for better trigger descriptions)
+- After model updates, skills built for older models can actively degrade performance -- the new model's native ability may outperform the old skill's rigid instructions, making periodic re-evaluation essential
+- The description field is the single highest-leverage line in a skill -- too weak and it never fires, too broad and it fires on wrong requests; Anthropic found better triggering on 5 of 6 of their own official skills after running the description optimizer
+- Core iteration loop: run eval, read failures, fix the skill, retest until passing -- replaces the guess-and-check approach most skill authors use
+- (see [Skill Creation Methodology: Eval-Driven Iteration Loop](#skill-creation-methodology-eval-driven-iteration-loop) for the foundational eval-driven approach; see [Skill Improvement: Blind Comparison](#skill-improvement-blind-comparison-and-iteration-principles) for the A/B comparison pattern)
+
+*Source: 2026-03-10-itsolelehmann-httpstcojzogxmkyhx.md*
+
+### Claude Skills Course: Foundations Through Production
+- Clarifying taxonomy: Projects = knowledge base (static reference), Skills = instruction manual (procedural automation), MCP = connection layer (live data sources) -- three tools, three distinct jobs
+- One Level Deep Rule: reference files within a skill must not link to other reference files -- Claude truncates reading at the second level, so deeply nested references become invisible
+- Five skill failure modes taxonomy: Silent Skill (never fires due to weak description), Hijacker (fires on wrong requests), Drifter (fires correctly but produces wrong output), Fragile Skill (works on happy path, fails on edge cases), Overachiever (adds unrequested extras beyond the skill's scope)
+- Multi-skill orchestration requires non-overlapping territories and aggressive negative boundaries -- when two skills could plausibly match the same request, the one with weaker negative examples wins incorrectly
+- State management via "shift handover" pattern: skill reads context-log.md at session start and writes a summary at session end, enabling cross-session skill continuity
+- (see [The Rule of Three](#the-rule-of-three) for when to create a skill; see [SKILL.md Frontmatter: Trigger Design Patterns](#skillmd-frontmatter-trigger-design-patterns) for description field best practices)
+
+*Source: 2026-03-11-hooeem-httpstcoxhfqyye7rd.md*
+
+### Skill Rot -- "I Built the Engine and Never Changed the Oil" (Andrew Orobator Pt 7, 2026-03-09)
+The instant kung fu download works for ~3 months. Then skills start lying.
+
+- **Failure mechanism:** files move; APIs change; patterns evolve. Skills reference things that no longer exist. Update a convention but forget the 3 skills referencing it. Agent gets one instruction from `AGENTS.md` and the opposite from a skill.
+- **Iury Souza (Fragmented podcast):** "As soon as you get contradicting information, it starts making the agent super dumb."
+- **The author's own incident:** dozens of skills, multiple commands, always-on rules; agent followed a skill that referenced a module path restructured months ago; `AGENTS.md` had ballooned to 900 lines with subtly contradicting sections. "The agent wasn't broken. It was confused, following outdated instructions with full confidence."
+
+**The taxonomy of skill rot rates:**
+- **Canned goods:** git workflow skill (accurate for years)
+- **Fresh produce:** feature development skill (one API change → stale)
+- **Sandwich:** migration helper (use today or throw out)
+
+**Maintenance pattern (Bedtime principle):** skills need the same consolidation + pruning that biological sleep provides. NREM consolidates, REM detects contradictions, regular cleanup keeps the system sharp.
+
+**Operational implementation:** skill audits run as part of `/open-pr` command -- agent launches subagents to scan all skills for contradictions, stale references, bloat. When issues found, opens a PR with fixes. Detection automated, approval human.
+
+**The rule:** **skills are code artifacts.** They need CI, versioning, and maintenance like any other code. The team that maintains skills stays productive; the team that ignores skill drift wonders why the AI got dumber.
+
+*Source: Andrew-Vibe-Coding/Vibe Engineering From Random Code to Deterministic Systems (Part 7).md*
+
+### Hermes Curator -- Auto-Pruning + Consolidating Skills
+@Teknium's introduction of "Hermes Curator" inside Hermes Agent. Solves the explosion-of-skills problem that the self-improvement loop creates: every "fix it permanently as a skill" creates a new skill file, and skill counts compound until the surface is unmanageable.
+
+- **What it tracks:** how often each skill is used, when it was last updated/created, runtime performance metadata
+- **Default cadence:** runs weekly (configurable). Can also be triggered manually with `hermes curator run`
+- **What it does:** uses analytics + its own scanning of skills to consolidate or prune. Converts overly specific skills into references, templates, or scripts that get integrated into broader skills.
+- **What it skips:** externally installed skills, built-in skills, and "pinned" skills the user marks as untouchable. Only operates on agent-created/updated skills or user-written skills.
+- **Consolidation outcomes:** merge similar skills, prune unused, demote rarely-used to references inside a parent skill
+- **Why this is the missing piece:** the self-improvement loop produces skills as a byproduct of every recurring task ("never instruct twice" -- see ericosiu Marketing OS principle 2). Without curation, the skill surface grows monotonically and quality degrades. Curation is the inverse loop.
+- (see [autonomous-agents.md > Five-Agent Fleet + Single Brain Marketing OS](autonomous-agents.md#five-agent-fleet--single-brain-marketing-os) for the "never instruct twice" principle that makes curation necessary; see [tools-and-integrations.md > Everything Claude Code](tools-and-integrations.md#everything-claude-code-ecc-hackathon-repo) for the 156-skill explosion this would manage)
+
+*Source: 2026-04-30-Teknium-introducing-hermes-curator-the-new-system-built-in-to-hermes.md*
+
+### Fat Skills + Thin Harness + Skillify Meta-Skill (Garry Tan)
+- **Architecture thesis:** the harness is thin (just routing logic, a few thousand lines), skills are fat (over 100 self-contained markdown files, each detailed instructions for one specific task), data is fat (100,000 pages of structured knowledge), code is fat (the scripts that feed transcription/OCR/social/calendar/email into the brain). Models are interchangeable — the skill decides which model to call.
+- **Skillify is a meta-skill that creates new skills.** When you encounter a workflow you'll repeat, say "skillify this" and the system examines what just happened, extracts the repeatable pattern, writes a tested skill file with triggers + edge cases, and registers it. Every fix compounds across all future invocations.
+- **Cross-modal eval pattern:** the first version of any skill is mediocre. Send the output through multiple models (Opus precision, GPT recall, DeepSeek creative) and have them score each other on dimensions you care about. Bake fixes into the skill. The book-mirror skill caught 3 factual errors this way before shipping.
+- **Skills compose like functions.** `book-mirror` calls `brain-ops` for storage, `enrich` for context, `cross-modal-eval` for quality, `pdf-generation` for output. Each skill focused on one thing. Improvement in one propagates to every workflow using it.
+- **Concrete skills from his GBrain stack:** meeting-ingestion (with entity propagation — after every meeting, walks through every person and company mentioned and updates their brain pages), enrich (5-source merge into single brain page per person), media-ingest (video/audio/PDF/screenshots/GitHub repos transcribed and filed), perplexity-research (web search that first checks what the brain already knows so it tells you what's *new* vs already captured).
+- **"The skills are the prompts."** When asked "how do you prompt your AI?" the answer is: I don't. The skills encode operational knowledge that would take a new human assistant months to learn.
+- (see [Buildroom Pattern](agent-design.md#buildroom-pattern-auto-think--auto-build-with-role-separated-agents) for the role-separation pattern; see [memory-persistence.md > Karpathy Wiki Method](memory-persistence.md) for the 100k-page brain architecture)
+
+*Source: 2026-05-09-garrytan-httpstcoxtqxqwuqn5.md*
+
+### Claude Skills Full Playbook: Saved Prompt vs Trained Employee
+- **Core distinction:** a saved prompt is a starting point for a conversation. A Skill is a trained employee. Saved prompt says "here is how to start" — Skill says "here is exactly how to do this job from start to finish, here is what good output looks like, here is what to do when things go wrong, here are the tools needed, here is the format to deliver results in."
+- **The three-question test before building any skill:**
+  1. What does this skill do? Be brutally specific — not "help with emails" but "draft professional follow-up emails to prospects who attended our webinar, reference the specific session, include one relevant case study, end with a 15-minute demo CTA."
+  2. When should it activate? List at least 5 trigger phrases the user would actually type.
+  3. What does perfect output look like? Show an actual example — paste a real piece of excellent output. One concrete example is worth more than 50 lines of instructions.
+- **SKILL.md two-section structure:** YAML frontmatter with name (kebab-case) + aggressive specific description listing every trigger phrase and when to/not to activate; then instructions below as step-by-step workflow with concrete examples + edge cases + quality standards. Keep under 500 lines. Vague language ("format nicely", "handle appropriately") is banned.
+- **Three-scenario test for production-readiness:** happy path (normal input, 80% of cases), edge case (weird/incomplete/conflicting input), stress test (biggest, messiest version). If skill passes all three with output you'd show a client, it's production-grade. Failures tell you exactly what instruction to add.
+- **Weekly refinement cycle:** every time you use a skill and output isn't quite right, update SKILL.md immediately. After a month of refinement, output becomes indistinguishable from a trained human professional.
+- **Library compounding math:** one skill saving 30 min/week = 26 hours/year. Ten skills = 260 hours/year = 6.5 work weeks returned annually.
+- **Industry-specific skill ladders** (real estate, marketing, finance, consulting, e-commerce) provided as templates — the pattern is universal: identify recurring tasks, build skills, refine, let Claude execute while you handle strategy.
+
+*Source: 2026-05-11-eng_khairallah1-httpstcojkryld2fnl.md*
 
 ---
 
@@ -536,9 +844,9 @@ This extends the two-pass pattern (see [Write Like a Human](#write-like-a-human-
 - Relevant for any workflow where AI-generated content needs to pass as human-written (marketing copy, blog posts, client communications)
 - Author: @dr_cintas (also publishes daily AI tutorials at simplifyingai.co)
 
-*Source: Twitter Bookmarks/Thread by @dr_cintas.md*
+*Source: Twitter-Bookmarks/Thread by @dr_cintas.md*
 
-*Source: Twitter Bookmarks/2026-03-07-bcherny-loop-skill-release.md*
+*Source: Twitter-Bookmarks/2026-03-07-bcherny-loop-skill-release.md*
 
 ### GSD Command Suite: Spec-Driven Development Lifecycle
 
@@ -555,6 +863,123 @@ Get Shit Done (GSD) is a 30+ command reference implementation of spec-driven dev
 **Phase management:** Add, insert, remove phases mid-milestone. `/gsd:plan-milestone-gaps` creates phases for audit-discovered gaps. Plans are structured as XML optimized for Claude (`<task type="auto">` with name, files, action, verify, done fields).
 
 (see [workflow-patterns.md](workflow-patterns.md) for the GSD wave execution pattern)
+
+### Superpowers: Composable Skills Library for Agentic Development
+
+- Superpowers (github.com/obra/superpowers) is a composable skills library providing structured workflows for Claude Code, Cursor, Codex, OpenCode, and Gemini CLI
+- Core philosophy: disciplined methodology over ad-hoc coding -- design brainstorming before implementation, TDD (RED-GREEN-REFACTOR cycles), root-cause debugging rather than symptom patching
+- 12+ reusable skills covering testing, debugging, collaboration, planning, git worktree management, and subagent coordination
+- Emphasizes evidence-based verification before declaring work complete; parallel agent-driven task execution with built-in code review checkpoints
+*Source: 2026-03-14-shannholmberg-try-it-here-httpstcopkwgknwghr-just-send-this-to-claude-and.md*
+
+### /last30days: Live-Intelligence Skill Design
+
+- /last30days skill scans Reddit and X from the past 30 days on any topic and returns deployment-ready prompts based on what the community has actually figured out right now -- addresses the core problem that most prompt guides are 6-12 months stale
+- Treats the prompting landscape as live intelligence rather than static documentation; output includes: top community-discovered patterns + a fully written copy-paste-ready prompt + source links
+- Design principle: a skill that grounds its output in current community signal has compounding value over a static skills library; the gap between users with fresh prompts and those recycling old ones widens over time
+- Open source, MIT license; demonstrates that skill value can come from recency rather than depth
+*Source: 2026-03-24-MillieMarconnni-this-feels-like-cheating-someone-built-a-claude-code-skill-t.md*
+
+### Deslop Skill: Post-Edit Code Simplification
+
+- "Deslop" as a standalone skill: proactive refactoring of recently-modified code to improve clarity, consistency, and maintainability without changing behavior
+- Scope control: only refine code touched in the current session unless explicitly instructed otherwise
+- Avoid over-simplification as explicitly as under-simplification: no nested ternaries, no "fewer lines over readability," no combining too many concerns
+- Operates autonomously and proactively after changes are made -- no explicit request needed
+- Naming: "deslop" communicates purpose precisely; the verb form makes the trigger condition unambiguous
+*Source: expect/.agents/skills/deslop/SKILL.md*
+
+### Frontend Design Skill: Context Detection and Authority Hierarchy
+
+- Layer 0 before any guidance: detect design tokens, component libraries, CSS frameworks, typography, animation libraries -- classify project as existing/partial/greenfield/ambiguous
+- Authority hierarchy: existing design system patterns > user instructions > skill defaults; skill defaults only fully apply in greenfield
+- Context modules: "existing apps" module is the default and most practically important; both Anthropic and OpenAI's official skills ignored the "adding a feature to an existing app" case
+- Two-tier anti-pattern system: "default against" (overridable preferences) vs "always avoid" (quality floor) -- flat anti-pattern lists don't distinguish these
+- Design skill orphaning: when a workflow uses deterministic agent mapping and skips skill discovery, skills that rely on dynamic invocation become unreachable
+*Source: compound-engineering-plugin/docs/brainstorms/2026-03-22-frontend-design-skill-improvement.md*
+
+### Multi-Source Research Skill: Tiered Availability and Intent Parsing
+
+- Tiered modes based on available API keys: zero-config (Reddit public JSON, Hacker News, Polymarket) → partial (one paid API) → full (all sources including X, YouTube, TikTok)
+- Progressive source unlocking lets users get immediate value with no setup, then add keys incrementally -- strong onboarding pattern for skills with external dependencies
+- `disable-model-invocation: true` in frontmatter forces a Python script first rather than letting Claude generate from pre-existing knowledge -- deliberate anti-hallucination architecture
+- Intent parsing before any tool call: parse user input into `TOPIC`, `TARGET_TOOL`, `QUERY_TYPE`, `DEPTH` variables -- intent extraction as a pre-processing step
+- Rule: never ask about target tool before research -- run research first, then offer tool options grounded in what research actually mentioned
+- "Use the user's exact terminology -- do not substitute tech names based on your knowledge. Your knowledge may be outdated." -- explicit preference for user signal over model prior
+- (see [skills.md#last30days-live-intelligence-skill-design](skills.md#last30days-live-intelligence-skill-design) for the high-level description of this skill)
+*Source: last30days-skill/SKILL.md, last30days-skill/SKILL-original.md*
+
+### Pre-Push Review: CI-Sourced Review Criteria
+
+- `pre-push-review` SKILL.md reads actual CI review criteria from `.github/workflows/bots.yml` rather than duplicating them in the skill -- single source of truth, skill stays perpetually in sync with CI without maintenance
+- Five review priority tiers in order: public API → concepts and behavior → documentation → tests → code style -- high-level architectural problems supersede nits
+- Comment quality rules: actionable only, 1-3 sentences, non-repetitive, no filler, no positive affirmation -- every finding must request a specific change or flag a concern
+- Allowed-tools list in frontmatter restricts the skill to read/grep/git-diff only -- no write access during review pass, enforced at the tool level
+- Pattern: reference external source-of-truth files rather than duplicating criteria in the skill definition
+*Source: pydantic-ai/.claude/skills/pre-push-review/SKILL.md*
+
+### Manim Skill for Hermes Agent: Programmatic Animation as Agent Capability
+- NousResearch released an official Manim skill for Hermes Agent -- Manim is a Python library for creating precise programmatic animations, made famous by 3Blue1Brown mathematical explainer videos
+- Pattern: technical visualization as a skill output -- the agent generates Python/Manim code that renders mathematical or technical animations, not just static text or images
+- Operational significance: skills can bundle generation of non-text artifacts (animations, charts) as first-class outputs, not just data or documents
+- Extends the "skills as capability modules" pattern: rather than telling the agent to use Manim manually, the skill encodes the full generation workflow including library conventions, output format, and rendering pipeline
+- Applicable KB pattern: any domain-specific generation tool (Manim for animation, Mermaid for diagrams, matplotlib for charts) can be wrapped as a skill to give agents reliable, repeatable artifact generation
+
+(see [Superpowers: Workflow Enhancer](tools-and-integrations.md#obrasuperpowers-workflow-enhancer-for-claude-agents) for the broader capability-extension pattern; NousResearch/hermes-agent is in github-repos.md under AI Agents)
+
+*Source: 2026-04-05-NousResearch-introducing-the-manim-skill-for-hermes-agent-manim-is-an-eng.md*
+
+### Superpowers Plugin: Structured Pre-Coding Discipline
+- obra/superpowers forces Claude to stop and think before coding: TDD mode (tests before implementation), Brainstorming (multiple approaches before committing), Debugging (structured root cause analysis vs random fixes), Skill authoring (reusable skill creation from discovered patterns)
+- Without Superpowers: agent produces code; with Superpowers: agent produces solutions (tested, architecture-fit, non-breaking)
+- Key behavioral shift: replaces the need to manually say "think first, then code" every session with an enforced pre-coding discipline
+- Compound Engineering complement: Superpowers enforces thinking before coding; Compound Engineering (/ce:plan) enforces planning with parallel research agents; use both -- Superpowers for fast build/QA loop, Compound for quality and compounding
+
+(see [gstack and Compound Engineering](tools-and-integrations.md#gstack-and-compound-engineering-two-claude-code-plugin-systems) for the Compound Engineering pattern; obra/superpowers is in github-repos.md)
+
+*Source: 2026-04-05-noisyb0y1-httpstcoz9c2n9lfgb.md*
+
+### LLM-Wiki as Built-In Hermes Agent Skill: Compiled Knowledge vs RAG
+- NousResearch officially bundled Karpathy's LLM-Wiki pattern as a built-in Hermes Agent skill (PR #5100) -- `hermes update` then `/llm-wiki <research x>` to start
+- Core distinction: traditional RAG rediscovers knowledge from scratch per query; the LLM-Wiki pattern compiles knowledge once into a structured wiki and keeps it current -- cross-references, contradictions, and synthesis compound over time instead of being re-derived every session
+- Three-layer architecture: raw sources (immutable articles, papers, transcripts), wiki pages (agent-owned entities, concepts, comparisons, filed queries), schema config (conventions, structure, domain definition)
+- Three core operations: **Ingest** (capture source, write summary, update entity/concept pages, cross-reference, update index + log), **Query** (read index, synthesize from compiled knowledge, file valuable answers back), **Lint** (find contradictions, orphan pages, stale content, data gaps, index completeness)
+- Includes Obsidian integration out of the box (works as a vault), YAML frontmatter for search/filtering, wikilink cross-referencing
+- Pattern significance: this is the same architecture the Knowledge Distillery uses -- validating the compiled-wiki approach as a reusable, packageable skill rather than a one-off project
+
+(see [Multi-Angle Research Agent Specialization](agent-design.md#multi-angle-research-agent-specialization) for nvk/llm-wiki's research agent patterns; NousResearch/hermes-agent in github-repos.md)
+
+*Source: 2026-04-07-Teknium-hermes-agent-now-comes-packaged-with-karpathys-llm-wiki-for.md*
+
+### Content Engine Skill Graph: 17-File Production System
+- Complete content production system built as a skill graph: 17 interconnected `.md` files across 4 folders (platforms/, voice/, engine/, audience/) that turn one topic into 10 platform-native posts
+- **Index.md as command center:** not a table of contents but a briefing -- identity, system instructions, node map with inline context per link. The agent reads index.md first and navigates the graph from there
+- **Key files:** brand-voice.md (DNA across all platforms), platform-tone.md (adapts DNA per platform culture), hooks.md (80% of content performance is the first line), repurpose.md (the production pipeline -- one idea in, ten posts out)
+- **"Rethinking, not reformatting":** each platform version approaches the topic from a different angle native to that platform's culture, not a length-adjusted copy of the same text
+- **Three usage methods:** Claude Projects (upload all files as persistent knowledge), paste context (copy index.md + key files into any AI chat), Cursor/Claude Code (agent reads files from local filesystem and can update them -- the graph evolves itself)
+- Replaces $5-12K/month content teams or agency retainers -- author runs 10 client social media accounts with this system
+- Extends the skill graph pattern from knowledge navigation to content production: same wikilink architecture, different domain
+
+(see [Skill Graphs: Networked Skill Architectures](#skill-graphs-networked-skill-architectures) for the foundational pattern; see [context-engineering.md](context-engineering.md#progressive-disclosure-summary-first-details-on-demand) for the progressive disclosure mechanism)
+
+*Source: 2026-04-10-DeRonin-httpstcorn8qlglibh.md*
+
+### Claude Ads: Multi-Platform Ad Audit Skill
+- Open-source Claude Code skill (github.com/AgriciDaniel/claude-ads, MIT, 714 stars) that runs 190 audit checks across Google (74 checks), Meta (46), YouTube, LinkedIn, TikTok, and Microsoft Ads
+- Uses 6 parallel subagents firing simultaneously -- consolidates into a single Ads Health Score with prioritized action plan ranked by revenue impact
+- **3x Kill Rule:** flags any campaign running above 3x target CPA for immediate pause
+- Built-in: budget sufficiency enforcement per platform, compliance checks for housing/credit/finance/healthcare, 11 industry strategy templates (SaaS, ecommerce, B2B, healthcare, real estate, etc.)
+- Pattern: domain-specific audit skill with parallel subagent execution and structured scoring -- applicable to any multi-platform audit workflow
+
+*Source: 2026-04-10-ihtesham2005-im-going-to-fire-my-ads-agency-because-of-this-claude-skill.md*
+
+### Apify Agent Skills: Community and Official Skill Collections
+- Two complementary repos: `awesome-skills` (community-curated directory of reusable skill definitions following the Agent Skills standard) and `agent-skills` (official Apify collection providing web scraping, data extraction, and automation capabilities as modular skills)
+- Pattern: skills as a shared ecosystem -- standardized skill format enables discovery and reuse across agents, similar to npm packages but for agent capabilities
+- Relevant for skill design inspiration and the broader question of skill portability between agent platforms
+- GitHub: apify/awesome-skills, apify/agent-skills
+
+*Source: GitHub Stars*
 
 ---
 
@@ -700,7 +1125,7 @@ Two official Claude Code skills (announced by Boris Cherny, Anthropic) targeting
 - Replaces manual cron + orchestration glue (one user: "I can kill 300 lines of orchestration glue and get retry logic for free")
 - Related: agents move closer to continuous background workers rather than one-off assistants (see [workflow-patterns.md](workflow-patterns.md#pattern-2-the-ralph-loop-autonomous-coding))
 
-*Source: Twitter Bookmarks/2026-03-07-bcherny-loop-skill-release.md*
+*Source: Twitter-Bookmarks/2026-03-07-bcherny-loop-skill-release.md*
 
 ### /btw: Side Questions During Active Work
 
@@ -711,7 +1136,7 @@ Two official Claude Code skills (announced by Boris Cherny, Anthropic) targeting
 - `/btw` is the inverse of a subagent: it sees your full conversation but has no tools, while a subagent has full tools but starts with empty context (see [agent-design.md](agent-design.md#subagents-in-claude-code) for subagent mechanics)
 - Built by @ErikSchluntz at Anthropic as a side project
 
-*Sources: Twitter Bookmarks/2026-03-10-trq212-a-bit-more-on-the-technical-details-this-cannot-do-any-tool.md, Twitter Bookmarks/2026-03-10-trq212-we-just-added-btw-to-claude-code-use-it-to-have-side-chain-c.md*
+*Sources: Twitter-Bookmarks/2026-03-10-trq212-a-bit-more-on-the-technical-details-this-cannot-do-any-tool.md, Twitter-Bookmarks/2026-03-10-trq212-we-just-added-btw-to-claude-code-use-it-to-have-side-chain-c.md*
 
 ### Instinct-Based Learning: Continuous Learning v2
 
@@ -739,7 +1164,4 @@ Confidence increases with repeated observation, decreases on user correction or 
 **Directory structure:** `~/.claude/homunculus/` with `instincts/personal/`, `instincts/inherited/`, `evolved/{agents,skills,commands}`, `observations.jsonl`. Backward compatible with existing `~/.claude/skills/learned/` from v1.
 
 (see [context-engineering.md](context-engineering.md#dynamic-system-prompt-injection-via-cli-aliases) for hook-based learning rationale)
-
----
-
 

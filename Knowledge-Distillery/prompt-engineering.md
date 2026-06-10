@@ -134,7 +134,7 @@ Use clear headings. Minimal verbosity. No filler.
 
 Explicitly request the output format: outline, bullets, mind map, persuasive essay, character-limited chunks, or a specific structure. Format requests are a cheap, high-leverage lever -- same content repackaged for different platforms in a single prompt. JSON as a prompt format: structuring prompts as JSON rather than prose improves LLM parsing and reduces ambiguity for complex multi-part requests.
 
-*Sources: Old Notes/Mastering GPT.md, Old Notes/Prompt Engineering.md*
+*Sources: Old-Notes/Mastering GPT.md, Old-Notes/Prompt Engineering.md*
 
 ### 9. Prompt Self-Improvement
 
@@ -166,6 +166,20 @@ If anything is unclear, ask before proceeding.
 ```
 
 This is the minimum viable prompt for non-trivial tasks. Anything shorter risks slop.
+
+### Top 30 Prompt Techniques for Claude 4.6
+
+- XML tags are Claude's native language -- wrap content in `<instructions>`, `<context>`, `<examples>`, `<output>`; Anthropic tests show 30%+ output quality improvement vs. unstructured prompts
+- Context before instructions: place long documents/data ABOVE the query, not after; Anthropic's own testing shows up to 30% quality improvement
+- Few-shot beats adjectives: one good example is worth ten descriptions; 3-5 diverse examples covering edge cases is the sweet spot
+- Explain WHY not just WHAT: "avoid ellipses since the TTS engine won't know how to pronounce them" outperforms "never use ellipses"; motivated rules generalize better
+- Give permission to say "I don't know": add "If the data is insufficient to draw conclusions, say so" to every research prompt; eliminates confident hallucination
+- Negative constraints: "Does NOT sound like generic AI, corporate jargon, LinkedIn influencer" is faster than describing what you do want
+- Multi-Persona Debate: make Claude argue from 3 perspectives (optimistic founder / cautious CFO / customer) then synthesize; produces dramatically better analysis than single-perspective
+- Self-Evaluation Loop: "Rate your answer 1-10 on accuracy, completeness, clarity. Then improve it based on your rating. Show improved version only." -- reliable error catcher
+- Extended thinking trigger: "Think through this step by step before giving your final answer. Consider edge cases and potential issues." -- transforms output quality for complex problems
+- 1M context tip: put longest content at TOP; use `<document index="1">` XML tags; ask Claude to quote relevant sections before analyzing; don't dump -- curate
+*Source: 2026-03-23-zodchiii-httpstcogw0rshzvea.md*
 
 ---
 
@@ -296,7 +310,23 @@ A detailed example of the Level 3 "Ideal" prompt style taken to its extreme -- t
 
 The key takeaway: rather than describing what to build conversationally, structure the prompt as a specification document with headers, tables, and exact values. The AI implements a spec more faithfully than it interprets a description.
 
-*Source: Twitter Bookmarks/Cure Procrastination by Gamifying your life with AI (Prompt Included).md*
+*Source: Twitter-Bookmarks/Cure Procrastination by Gamifying your life with AI (Prompt Included).md*
+
+### Planner Agent as Prompt Architecture: Specificity Before Production
+
+- Underlying principle: specificity of input determines quality of output; the planner step forces specificity before any production begins
+- One-sentence prompt → planner expands to full scope/dependency/audience spec → builder executes from spec; eliminates silent assumption-filling
+- The-interviewer pattern: (1) expand prompt into most ambitious version outline; (2) identify gaps, ask directly with proposed answers; (3) assemble brief and execute; 2 minutes upfront eliminates editing cycles
+*Source: 2026-03-27-itsolelehmann-httpstcowemnpj6xem.md*
+
+### Prompt Formatting as a Skill Layer
+
+- Three depth levels: light (format only), standard (format + assumptions/rationale block), deep (format + research/compare/verify block)
+- Tool-routing check before execution: check whether another tool would serve the task better; flag but don't block
+- Two-pass audit for refinement: substance checklist first (depth calibration, self-verification, best-practice grounding, specificity), then structure checklist -- substance gaps take priority
+- Anti-patterns to fix: vague thoroughness language ("be meticulous") → specific action verbs; over-prompting ("YOU MUST", "CRITICAL") → calm specific directives; buried lede → core task at top
+- Pattern: a `/prompt` command that parses intent, calibrates depth, formats to structured prompt, injects depth directives, then executes
+*Source: claude-code-synthesis/commands/prompt.md*
 
 ---
 
@@ -345,7 +375,7 @@ Show the model a finished output and ask: "What prompt would generate content ex
 - Complements the "Enhance My Prompt" technique (see [above](#the-enhance-my-prompt-technique)): Enhance improves a draft prompt; Reverse Prompting creates one from an output
 - Also applicable to voice/tone cloning: feed writing samples, extract style DNA, generate a reusable voice profile
 
-*Sources: Old Notes/Prompt Engineering.md, Old Notes/Emails.md*
+*Sources: Old-Notes/Prompt Engineering.md, Old-Notes/Emails.md*
 
 ### Negation-Based Prompting for Code Quality ("Code Field")
 
@@ -392,7 +422,7 @@ A single context file that makes AI output match the user's natural writing voic
 
 (see [context-engineering.md](context-engineering.md) for context file placement hierarchy)
 
-*Source: Twitter Bookmarks/2026-03-02-itsolelehmann-i-got-claude-to-actually-sound-like-me.md*
+*Source: Twitter-Bookmarks/2026-03-02-itsolelehmann-i-got-claude-to-actually-sound-like-me.md*
 
 ### Memory Files as Standing Anti-Slop Rules
 
@@ -407,6 +437,47 @@ Use project-level instruction files (CLAUDE.md, guidelines.md, rules files) to e
 These act as standing instructions across all sessions. The trade-off is context window: every persistent document consumes tokens. Right-size your context -- enough to prevent guessing, not so much that the AI drowns in irrelevant information.
 
 (see [project-setup.md](project-setup.md#claudemd-templates) for the CLAUDE.md template)
+
+### Prompting for Code Review: Unlocking Signal with "Be Harsh"
+
+- Code review prompt: add "be harsh" -- without it, Claude defaults to polite, low-signal feedback; harsh instruction unlocks actually useful critique
+- "Does not sound like ChatGPT" instruction removes the AI-generated opener pattern and produces more human-sounding writing output
+- Always add "If data is insufficient, say so" to research prompts -- without this, Claude confidently invents numbers
+*Source: 2026-03-26-zodchiii-httpstcovddldgl4nk.md*
+
+### Prompt Engineering Applied to Agent System Prompts
+
+- Peripheral position rule is the highest-leverage single optimization: move mandatory checklists and status markers to the end; identity/framing to the beginning
+- Adversarial identity framing ("find bugs the developer missed") is more effective than procedural framing ("executing a browser regression test") -- framing influences every downstream decision
+- Strip inline code samples from behavioral instructions: behavioral directives drive compliance; code examples burn budget without improving compliance
+- Remove hedging ("when relevant," "take your time") -- replace with concrete directives; hedged language is an agent escape hatch
+- Positive framing over negative: "a thorough run that catches real issues is the goal" paired with "do not rush to completion"
+- Dynamic effort parameter: `medium` for local runs, `high` for CI where thoroughness matters more
+- Domain tagging on failure reports (`domain=animation`, `domain=accessibility`) enables routing failures to the correct sub-skill
+*Source: expect/.specs/prompt-optimization.md*
+
+### Verbalized Sampling: Sampling From the Tails
+Stanford research technique (Zhang, Manning, et al. -- arxiv 2510.01171) that counters mode collapse caused by alignment training (RLHF, DPO).
+
+- **The mode collapse problem:** after alignment, LLMs converge on safe, typical, "most likely" responses. Creative, unusual, high-value insights get suppressed because the model learned that familiar = preferred. When you ask any AI for analysis, you're getting the most TYPICAL analysis, not the most INSIGHTFUL one. The tails of the distribution -- where the genuinely surprising insights live -- get cut off.
+- **The technique:** instead of asking the model for one answer, ask it to generate multiple responses AND assign probability scores to each. Then explicitly tell it to sample from the tails -- responses with probability less than 0.10.
+- **Result:** 1.6-2.1x diversity improvement in creative tasks while maintaining quality. Training-free. Works on any model. **Orthogonal to temperature** -- it stacks on top of temperature settings, doesn't replace them.
+- **Why it matters for council/multi-perspective workflows:** without VS, each model gives its most typical response; with VS, each model explores its own distribution more broadly, surfacing insights it would otherwise suppress (see [agent-design.md](agent-design.md#three-layer-llm-council-multi-model--custom-lenses--verbalized-sampling) for the LLM Council application).
+- **Practical prompt shape:** "Generate 5 responses to [question]. Assign each a probability score reflecting how typical/expected it is. Then give me the response with probability < 0.10 -- the tail-distribution insight."
+- Real example surfaced: "should I paywall my newsletter at 99K subscribers?" -- the typical response analyzes free vs paid revenue. The tail-distribution insight reframed the question entirely: "the newsletter is the trust asset, not the revenue product. Monetization should sit ABOVE the newsletter (courses, consulting), not inside it."
+
+*Source: 2026-04-11-alex_prompter-httpstcoyhwxqinusq.md*
+
+### Self-Preference Bias in LLM-as-Judge
+Three peer-reviewed papers documenting why single-model peer-review steps are weaker than they look:
+
+- **NeurIPS 2024 (arxiv 2404.13076):** LLMs score their own outputs higher than other models' outputs even when humans rate them equal. Linear correlation: the better a model recognizes its own output → the stronger the self-preference bias.
+- **ICLR 2025 (arxiv 2410.21819):** the mechanism is stylistic familiarity (measured via perplexity). Outputs closer to the model's own style get higher scores.
+- **arXiv 2026 (arxiv 2604.06996):** the bias persists even with entirely objective criteria. Judges were up to 50% more likely to incorrectly mark outputs as correct when the output was their own.
+- **Practical implication:** persona prompting (Contrarian, Expansionist, etc.) on a single model DOES generate genuinely different outputs. The weakness is in the peer-review step -- one model can't meaningfully critique five of its own outputs because they all "feel" equally familiar. Fix: use different models for evaluation/peer-review than for generation.
+- (see [agent-design.md](agent-design.md#three-layer-llm-council-multi-model--custom-lenses--verbalized-sampling) for the multi-model council pattern that addresses this)
+
+*Source: 2026-04-11-alex_prompter-httpstcoyhwxqinusq.md*
 
 ---
 
@@ -466,7 +537,7 @@ A self-contained system prompt that turns an LLM into a prompt engineering assis
 - Quality gate: "Would this prompt produce the best result for a non-expert user? If not, revise."
 - Distinct from "Enhance My Prompt" (starts from rough user prompt); this is a standing persona that designs prompts from scratch
 
-*Source: Old Notes/Prompt Engineering.md*
+*Source: Old-Notes/Prompt Engineering.md*
 
 ### The Revision Cycle as Workflow
 
@@ -481,7 +552,29 @@ Iteration is a feature, not a bug. The revision cycle is a legitimate workflow, 
 
 Key insight: you do not need to specify everything upfront. A clear initial specification + 2-3 focused revision rounds often produces better results than trying to anticipate every detail in a single prompt.
 
-*Source: Learning CC/notes/module-3-reflection.md, module-5-reflection.md*
+*Source: Learning-CC/notes/module-3-reflection.md, module-5-reflection.md*
+
+### Prompting as Project Management
+
+- Prompt as project manager, not engineer: describe the end result ("a clean landing page with big headline, 4 services, booking link") not the steps; give the brief, let Claude be the developer
+- Screenshot-driven debugging: paste a visual bug screenshot and say "this section overlaps on mobile -- fix it"; faster than text descriptions
+- Loop-breaking pattern: when Claude enters a fix-creates-bug spiral, type "Stop. Explain what's going wrong. Give me 2 different approaches." Forces diagnosis before the next attempt
+*Source: 2026-03-19-rubenhassid-httpstcolmdv0axswg.md*
+
+### Role-Based Prompting: Role = Context = Quality
+
+- Role assignment is the highest-leverage single prompt change: "act as a CMO with 20 years of Fortune 500 experience" vs. "explain marketing" produces radically different output from the same model
+- A good prompt does four things: assigns a role, provides context, defines the output format, and sets constraints; most prompts do only one of these
+- Debate Partner and Devil's Advocate roles are useful for stress-testing ideas before committing -- structured adversarial prompting, not just asking for feedback
+*Source: 2026-03-20-qwerty_ytrevvq-httpstco7izbrzyeto.md*
+
+### Intent Parsing Before Tool Invocation
+
+- Parse user input into structured variables (`TOPIC`, `TARGET_TOOL`, `QUERY_TYPE`, `DEPTH`) before any tool call -- intent extraction as a pre-processing step rather than mid-execution inference
+- Query type taxonomy drives completely different search patterns, synthesis formats, and output structures: PROMPTING / RECOMMENDATIONS / NEWS / GENERAL
+- "Use the user's exact terminology -- do not substitute or add tech names based on your knowledge. Your knowledge may be outdated -- trust the user's terminology."
+- Quantity of community mentions as a primary credibility signal: "count mentions across sources" vs qualitative synthesis for recommendations queries
+*Source: last30days-skill/SKILL-original.md*
 
 ---
 
@@ -490,4 +583,3 @@ Key insight: you do not need to specify everything upfront. A clear initial spec
 - [failure-patterns.md](failure-patterns.md) -- what goes wrong when prompts are vague or tasks are too large
 - [workflow-patterns.md](workflow-patterns.md) -- how prompts fit into larger development workflows
 - [project-setup.md](project-setup.md) -- the CLAUDE.md template and project-level context setup
-

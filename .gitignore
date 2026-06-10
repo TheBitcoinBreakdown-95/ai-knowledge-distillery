@@ -3,18 +3,18 @@
 # Internal workflow files (private, not published)
 WORKLOG.md
 SESSION-HISTORY.md
-Knowledge Distillery/OPTIMIZATION-PLAN.md
-Knowledge Distillery/CONCEPT-INDEX.md
-Knowledge Distillery/sources/ingested-files.md
-Knowledge Distillery/sources/ingested-paths.txt
-Knowledge Distillery/sources/processing-log.md
+Knowledge-Distillery/OPTIMIZATION-PLAN.md
+Knowledge-Distillery/CONCEPT-INDEX.md
+Knowledge-Distillery/sources/ingested-files.md
+Knowledge-Distillery/sources/ingested-paths.txt
+Knowledge-Distillery/sources/processing-log.md
 
 # Claude Code local config
 .claude/settings.json
 .claude/settings.local.json
 .claude/plans/
 .claude/.tmp/
-Knowledge Distillery/.claude/
+Knowledge-Distillery/.claude/
 
 # Cloned repos (reference material, not our code)
 anthropic-courses/
@@ -32,16 +32,16 @@ get-shit-done/
 langextract/
 
 # Source note directories (private inputs, read-only)
-Andrew Vibe Coding/
-Claude Code/
-Clawdbot aka Openclaw/
-Old Notes/
-Ralph Wiggum/
+Andrew-Vibe-Coding/
+Claude-Code/
+Clawdbot-aka-Openclaw/
+Old-Notes/
+Ralph-Wiggum/
 Scrapling/
 Threads/
-Twitter Bookmarks/
+Twitter-Bookmarks/
 x-research-skill/
-I Have Spent 500+ Hours Programming With AI. This Is what I learned/
+500-Hours-Programming-With-AI/
 skills/
 _EXAMPLES/
 
@@ -53,16 +53,20 @@ __pycache__/
 kb-mcp/.venv/
 
 # KD internal work archive
-Knowledge Distillery/_work-archive/
+Knowledge-Distillery/_work-archive/
 
 # Vector DB and index artifacts
-Knowledge Distillery/.vectordb/
-Knowledge Distillery/_index_meta.json
+Knowledge-Distillery/.vectordb/
+Knowledge-Distillery/_index_meta.json
 
 # Bookmark tooling (private workflow)
 export_bookmarks.js
 parse_bookmarks.py
 refresh_bird_cookies.py
+bird_refresh_cookies.py
+.bird-state/
+xapi/
+bookmarks-*.json
 
 # Triage scratch files
 truly_new_files.txt
@@ -78,3 +82,21 @@ Thumbs.db
 
 # Obsidian
 .obsidian/
+
+# Renamed/new reference and scratch dirs (not KB content)
+_scratch/
+AI-Daily-Brief/
+Deep-Research/
+Learning-CC/
+LightRAG/
+MidJourney/
+Prompt-Engineering/
+Prompts/
+agency-agents/
+autoresearch/
+claude-code-synthesis/
+claude-mem/
+claude-task-master/
+compound-engineering-plugin/
+bird_err.txt
+bird_output.txt

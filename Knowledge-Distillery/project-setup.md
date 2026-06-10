@@ -76,7 +76,7 @@ MCP (Model Context Protocol) servers extend Claude with external capabilities: b
 }
 ```
 
-Place `.mcp.json` at project root. Use `--mcp-debug` to troubleshoot. Document MCP usage guidance in `CLAUDE.md` so Claude knows *when* and *how* to use each server. (see [tools-and-integrations.md#mcp-servers-extending-capabilities](tools-and-integrations.md#mcp-servers-extending-capabilities))
+Place `.mcp.json` at project root. Use `--mcp-debug` to troubleshoot. Document MCP usage guidance in `CLAUDE.md` so Claude knows *when* and *how* to use each server. (see [mcp-servers.md](mcp-servers.md))
 
 ### Local-First Development: Docker + Ollama Setup Pattern
 
@@ -85,7 +85,15 @@ Place `.mcp.json` at project root. Use `--mcp-debug` to troubleshoot. Document M
 - Docker Compose as deployment unit: services in `docker-compose.yml`, env vars pointing to local Ollama (`http://host.docker.internal:11434`), persistent volumes
 - Model setup is separate from app setup: `ollama pull [model]` + configure app to reference model names
 - Same skills needed for MCP server configuration and local tool integration (see [project-setup.md](#step-4-set-up-mcp-servers-mcpjson))
-*Source: Old Notes/Open Notebook.md*
+*Source: Old-Notes/Open Notebook.md*
+
+### Claude Code Setup for Non-Technical Users
+
+- CLAUDE.md as "memory file": after a first session, prompt Claude to "create a CLAUDE.md file and write down everything you've learned about this project: folder structure, design choices, preferences"
+- Prompt as project manager, not engineer: describe the end result, not the steps; give the brief, let Claude be the developer
+- Loop-breaking pattern: when Claude enters a fix-creates-bug spiral, type "Stop. Explain what's going wrong. Give me 2 different approaches." Forces diagnosis before the next attempt
+- Start small, iterate: one deliverable per prompt, one screen at a time
+*Source: 2026-03-19-rubenhassid-httpstcolmdv0axswg.md*
 
 ### Step 5: Create First Custom Commands (.claude/commands/)
 
@@ -158,6 +166,90 @@ For production codebases that benefit from comprehensive guardrails. Each sectio
 | 16 | Hooks & Automation | Recommended hooks and when they apply |
 | 17 | Pull Request Behavior | Auto-PR rules, summary requirements, merge gating |
 | 18 | Final Principles | Simplicity first, no laziness, minimal impact |
+
+### CLAUDE.md Discipline: Core Principles
+
+- CLAUDE.md should be a logical nested directory of IF-ELSE pointers to context files, not a giant rules dump; keep it barebones: "if doing X, read rules/X.md"
+- Separate research from implementation in distinct agent sessions: give a fresh-context agent the specific implementation rather than "build an auth system"
+- Define task completion explicitly: agents know how to start but not stop; tests are ideal endpoints (deterministic pass/fail); TASK_CONTRACT.md specifying required tests, screenshots, and verifications prevents premature termination
+- New session per contract beats 24-hour running sessions: long sessions force context bloat from unrelated contracts
+- Rules and Skills are the core primitives: rules encode preferences/prohibitions, skills encode recipes; periodically have the agent consolidate and remove contradictions from both
+*Source: 2026-03-03-systematicls-httpstcowbakpai5vl.md*
+
+### CLAUDE.md as Collaboration Contract
+
+- CLAUDE.md is a collaboration contract: include build/test/lint commands, key directory structure, NEVER list, and Compact Instructions; exclude vague principles and large background materials
+- Treat CLAUDE.md as starting empty: add entries only when you catch yourself repeating the same instruction; after correcting a mistake, immediately add "update your CLAUDE.md so you don't make that mistake again"
+- Context cost reality: 5 MCP servers at ~200 tokens/tool definition = ~25k tokens consumed in fixed overhead before any task work
+- Skills frequency rule: >1/session = keep auto-invoke + optimize descriptor; <1/session = disable auto-invoke; <1/month = remove and document in AGENTS.md
+- HANDOFF.md pattern: before ending a session, have Claude record what it tried, what worked, what failed, and what comes next
+- Verification test: "if you can't clearly articulate what 'done' looks like, the task is not ready for autonomous execution"
+(see [context-engineering.md](context-engineering.md) for context window budgeting)
+*Source: 2026-03-15-HiTw93-httpstcopec3y6sswl.md*
+
+### CLAUDE.md Hierarchy: Project vs User vs Directory Level
+
+- CLAUDE.md hierarchy: user-level (~/.claude/CLAUDE.md, NOT version-controlled), project-level (.claude/CLAUDE.md), directory-level (subdirectory files)
+- Common trap: instructions in user-level config are not shared with team members -- anything team-wide must be at project level
+- Path-specific rules (.claude/rules/ with YAML frontmatter glob patterns) apply conventions across the entire codebase; directory-level CLAUDE.md cannot do this because it is directory-bound
+*Source: 2026-03-15-hooeem-httpstco4tchgza4oc.md*
+
+### COMP System: Four-File Project Architecture
+
+- COMP system: 4 project files -- CLAUDE.md (AI behavior), ORIENT.md (human onboarding), MEMORY.md (accumulated decisions/gotchas), PLAN.md (roadmap/progress); each has different audience and update frequency
+- Orchestrator-first pattern: the session agent decides whether to handle directly, delegate to subagent, or route to MCP; never start coding before this decision
+- Dialectic review pattern: spawn opposing agents (Hunter argues FOR, Skeptic argues AGAINST, Referee synthesizes) instead of asking one agent for pros/cons; anti-sycophancy by design
+- Evals before specs: the progression is evals → spec → plan → implement → verify; define success measurement before writing the spec
+- Structured over prose for mandatory rules: use XML and JSON in CLAUDE.md, not markdown paragraphs; Claude processes tagged content differently from prose
+- Test-first bug fixing: write a test that reproduces the bug before any fix; operationalize every fix (write tests for the whole class, check for other instances, update CLAUDE.md if a gap is revealed)
+- Progressive disclosure in CLAUDE.md: keep it lean with trigger rules ("when X happens, read guide Y"); guides load on-demand rather than all upfront
+*Source: 2026-03-24-GriffinHilly-httpstcohwymfzk7ob.md*
+
+### CLAUDE.md Size and Subagent Template Practices
+
+- Keep CLAUDE.md under 200 lines; overflow into `.claude/rules/` with YAML frontmatter for path-matched loading; CLAUDE.md hierarchy (priority): managed/enterprise → project → user → rules/; array-valued settings (permissions) MERGE across scopes rather than replace
+- Three subagent templates: explorer (read-only, no file writes), planner (read-only), executor (full capabilities) -- explicit tool allowlists required; a "read-only description" does not restrict tool access
+- 6-persona subagent testing: Skeptical Staff Engineer, Security Reviewer, New Maintainer, Heavy CLI User, Operator/SRE, Docs-First Newcomer -- spin up all 6 before shipping; found 5 critical issues in 15 minutes that 2 weeks of personal use missed
+- MCP overhead is real: each server adds 100-500+ tokens to context; run 2-3 max per project, disable when not needed
+- Hooks enforce rules as code, not suggestions: PreToolUse can block; PostToolUse cannot (already ran); auto-inject important instructions after /compact via hook to prevent loss
+- Auto-learning rules: nightly cron extracts behavioral patterns into CLAUDE.md; only style preferences can be automated; core safety rules must be handwritten and human-reviewed
+- Plan Mode + Ctrl+G: edit the plan in your editor before execution; changing a plan takes one sentence, changing half-written code takes 10x longer
+- Git worktrees for zero-risk experiments: each branch gets its own working directory; Claude can do anything in the experiment worktree, main stays untouched
+*Source: 2026-03-25-Voxyz_ai-httpstcobjkuc3rtsc.md*
+
+### Onboarding Document Generator Pattern
+
+- Five-section structure for new contributor onboarding: What is this? How is it organized? Key concepts/abstractions? Primary flow? Where do I start?
+- Always regenerate from scratch -- reading old doc to update it means doing two jobs (understand codebase + fact-check old doc); slower and more error-prone than regenerating
+- Human-first writing -- clear prose, not agent-formatted structured data; agent utility is a side effect of clear prose
+- No design rationale inference -- the creator may not know, and presenting guesses as fact is worse than silence
+- Inline linking to existing docs within relevant sections, not a references appendix
+*Source: compound-engineering-plugin/docs/brainstorms/2026-03-25-vonboarding-skill-requirements.md*
+
+### Self-Improving Rules Pattern
+
+- After completing each subtask, review code changes and chat history to identify new patterns; create or update rules files when a pattern appears in 3+ files or when code reviews repeat the same feedback
+- Rule triggers: new technology used consistently, common bugs that could be prevented, emerging conventions, deprecated patterns to retire
+- Rule quality checks: actionable and specific, examples from actual codebase, references current, patterns consistently enforced
+- Deprecation: mark outdated patterns, document migration paths, remove rules that no longer apply
+*Source: claude-task-master/.kiro/steering/self_improve.md*
+
+### Rules-Extracted Coding Standards as AGENTS.md Topic Guides
+
+- Store distilled coding rules in `agent_docs/` topic files (api-design, code-simplification, documentation, index) referenced from AGENTS.md -- rules are tagged with IDs for traceability to PRs
+- Rules are extracted from PR review patterns and annotated with reasoning: what to do, why it prevents a problem, what the alternative looks like
+- Three-tier knowledge structure: AGENTS.md (entry point) → agent_docs/index.md (coding guidelines) → agent_docs/topic-guides (domain-specific rules) -- hierarchical, load-on-demand
+- AGENTS.md declares which sub-AGENTS.md files to load per directory -- directory-scoped instructions prevent context bloat
+*Source: pydantic-ai/AGENTS.md, pydantic-ai/agent_docs/index.md*
+
+### AGENTS.md Multi-Layer Instructions Pattern
+
+- Root-level CLAUDE.md for project overview + directory-specific AGENTS.md files for each submodule -- instructions scoped to the code context being edited
+- AGENTS.md explicitly specifies preferred tools: e.g., prefer `rg` for searches (faster under CLI harness), use `apply_patch` for single-file edits
+- Makefile as canonical entry point: all setup stages invoked via `make` targets -- resolves platform compatibility issues (e.g., Bash 4+) that bare scripts would expose
+- For automation: prefer wrapper scripts over bare tool invocations -- scripts have fallback chains through multiple Python installations
+- Never use destructive git commands without explicit user confirmation -- state this as an invariant in AGENTS.md
+*Source: LightRAG/AGENTS.md*
 
 ---
 
@@ -302,6 +394,18 @@ Only available for Opus 4.6; other models do not expose this control.
 
 Additional: `ignoreViolations` (suppress specific violations), `enableWeakerNestedSandbox` (Docker), `httpProxyPort`/`socksProxyPort` (custom proxy).
 
+### Three-Level Claude Code Security Hardening Ladder
+- **Level 1 (15 min, covers 90%):** `/sandbox` + `~/.claude/settings.json` with deny rules + `claude update`. Without sandbox, deny rules only block built-in tools -- bash commands bypass them entirely. Sandbox enables OS-level enforcement (Seatbelt on Mac, bubblewrap on Linux)
+- **Level 2 (30 min):** Trail of Bits open-sourced their exact Claude Code security config: `github.com/trailofbits/claude-code-config`. Install via `claude plugin marketplace add trailofbits/skills`, then `/trailofbits:config`. Adds security checklists, workflow hooks, and forces plan-before-code + verify-before-ship discipline
+- **Level 3 (1 hr, full isolation):** Trail of Bits devcontainer (`github.com/trailofbits/claude-code-devcontainer`). Claude runs inside a container with zero access to host machine -- no SSH keys, no cloud credentials, no filesystem outside the project. `bypassPermissions` enabled inside the container because the container IS the sandbox
+- Key setting: `"enableAllProjectMcpServers": false` prevents cloned repos from auto-loading their MCP configs -- blocks the MCP config hijack attack vector
+- Sample deny patterns: `Read(~/.ssh/**)`, `Read(~/.aws/**)`, `Read(~/.git-credentials)`, `Bash(curl *)`, `Bash(wget *)`, `Bash(ssh *)`, `Bash(git push *)`, `Read(*.env)`, `Read(.env.*)`
+- Versions before 2.0.65 had two unpatched critical vulnerabilities -- run `claude update` monthly
+
+(see [failure-patterns.md](failure-patterns.md#security-failure-patterns) for the attack vectors these settings defend against; see [Sandbox Configuration](#sandbox-configuration) for the full settings reference)
+
+*Sources: 2026-04-08-noisyb0y1-httpstcoyvurya7dji.md, 2026-04-10-Axel_bitblaze69-some-important-claude-code-security-settings-you-need-to-tak.md*
+
 ### Display & UX Settings
 
 | Key | Type | Description |
@@ -321,6 +425,12 @@ Status line input fields: `workspace.added_dirs`, `context_window.used_percentag
 **Plugins:** `enabledPlugins` (object), `extraKnownMarketplaces` (object), `strictKnownMarketplaces` (managed allowlist), `pluginConfigs` (per-plugin MCP configs keyed by `plugin@marketplace`).
 
 **MCP servers:** `enableAllProjectMcpServers` (auto-approve all), `enabledMcpjsonServers` (allowlist), `disabledMcpjsonServers` (blocklist), `allowedMcpServers` / `deniedMcpServers` (managed, with name/command/URL matching).
+
+### Claude Code Starter Settings and Memory Bank
+
+- A published starter configuration with settings.json defaults and a structured memory bank for persisting context across Claude Code sessions is available as a reference implementation
+- Covers the settings + memory bank setup pattern for bootstrapping new projects with persistent context from session one
+*Source: 2026-03-27-tom_doerr-claude-code-starter-settings-and-memory-bank-system-httpstco.md*
 
 ---
 
@@ -352,6 +462,31 @@ Several features exist only at `~/.claude/` and cannot be project-scoped:
 
 Design principle: coordination state, security state, and personal learning live globally. Configuration and workflow definitions live at both levels. Auto-memory is a notable hybrid: it is about a specific project but stored globally because it represents personal learning rather than team-shareable config.
 
+### Anatomy of the .claude/ Folder
+
+- Two .claude directories: project-level (.claude/ committed to git, team-shared) and global (~/.claude/ for personal preferences); settings.local.json auto-gitignored
+- Hook exit codes: 0 = success, 1 = error but non-blocking (the most common mistake -- security hooks using exit 1 do nothing), 2 = blocks execution and sends stderr to Claude for self-correction. Always use exit 2 for security gates
+- Stop hook infinite loop prevention: always check the stop_hook_active flag in the JSON payload; without this check, the hook blocks Claude indefinitely
+- .claude/agents/ subagent personas: each has its own system prompt, tool access restrictions, and model preference; a security auditor needs only Read/Grep/Glob -- no Write access
+- ~/.claude/projects/ stores session transcripts and auto-memory per project, browsable via /memory
+*Source: 2026-03-21-akshay_pachaar-httpstcosssik3bx4z.md*
+
+### Repo Documentation Taxonomy: Brainstorms/Plans/Solutions/Specs
+
+- Layered documentation taxonomy: brainstorms (requirements exploration), plans (implementation plans + progress), solutions (documented decisions and patterns), specs (format specifications)
+- Solution categories from the end-user perspective: developer-experience (local dev), integrations (cross-platform bugs), workflow/skill-design (plugin behavior)
+- Pattern: keep these directories at `docs/brainstorms/`, `docs/plans/`, `docs/solutions/`, `docs/specs/` -- each has a clearly defined lifecycle and audience
+*Source: compound-engineering-plugin/AGENTS.md*
+
+### Context Scratch Space Convention
+
+- Use `.context/<plugin-name>/<workflow-or-skill-name>/` for ephemeral collaboration artifacts (in-progress work, scratch space)
+- Add per-run subdirectory when concurrent runs are plausible
+- Clean scratch artifacts after successful completion unless user asked to inspect them or another agent still needs them
+- Durable outputs (plans, specs, learnings, docs) do not belong in `.context/`
+- `.context/` is gitignored; namespace under the plugin/tool identifier prevents collisions
+*Source: compound-engineering-plugin/AGENTS.md*
+
 ---
 
 ## First Session Checklist
@@ -382,6 +517,45 @@ Items to configure during project setup:
 - `/statusline` to generate a custom status line from your shell config
 - `/keybindings` to customize key mappings (live reload)
 - Output styles via `/config`: Explanatory (learning a codebase), Learning (coaching mode), or Custom
+
+### 50 Claude Code Configuration Tips
+
+- CLAUDE.md has ~150-200 instruction budget before compliance degrades; every line must earn its place. Litmus test: "Would Claude make a mistake without this?" If no, delete it
+- Use CLAUDE.md for suggestions, hooks for requirements -- CLAUDE.md compliance is ~80%, hooks are 100% deterministic
+- After Claude makes a mistake, say "Update your CLAUDE.md so this doesn't happen again" -- Claude writes its own rule
+- Two-session review pattern: first Claude implements, second Claude reviews from fresh context like a staff engineer who has no knowledge of implementation shortcuts
+- /branch (/fork) creates a live copy of a conversation so both the risky and safe paths stay alive simultaneously
+*Source: 2026-03-19-CodevolutionWeb-httpstcotxmjpjngdo.md*
+
+### 40 Claude Code Best Practices: The Configuration Gap
+
+- The gap between casual and power Claude Code users is configuration, not skill; properly configured saves 4-6 hours/week
+- Three signal-to-noise improvements: /clear between unrelated tasks, after 2 failed corrections start fresh rather than correcting a third time, guide /compact with explicit preservation instructions
+- ultrathink keyword on Opus 4.6 triggers adaptive reasoning budget allocation based on problem complexity
+- /loop for background monitoring: /loop 5m check if deploy succeeded runs while session stays open; /permissions allowlist eliminates the per-command approval tax
+- /sandbox provides OS-level isolation (Seatbelt/bubblewrap) for unsupervised experimental work
+*Source: 2026-03-22-Suryanshti777-httpstcomhu0dgktzx.md*
+
+### Compound Engineering Workflow
+
+- /ce:plan before everything: run Compound Engineering's plan command at session start to force structured decomposition before any code is written
+- 4-6 parallel sessions is the sweet spot for Compound Engineering; fewer than 4 leaves parallelism on the table; more than 6 creates coordination overhead
+- bypassPermissions in settings.json: set for trusted projects to eliminate the per-command approval tax; use sparingly and only in projects you fully control
+- Voice workflow: dictate tasks to Claude Code while doing other work; voice input with auto-transcription removes the typing bottleneck for longer task descriptions
+- Compound Engineering plugin: EveryInc/compound-engineering-plugin -- extends Claude Code with /ce:plan, /ce:review, and related workflow commands
+*Source: 2026-03-22-mvanhorn-httpstcoawabazttdp.md*
+
+### Eight Claude Code Customizations for Power Users
+- Shell alias `cc` with `--dangerously-skip-permissions` eliminates the per-command approval tax for experienced users who trust their project; additional aliases streamline common launch patterns
+- Auto-compact threshold tuning: the default 95% triggers compaction too late, causing context loss at critical moments; set `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE` to 60-75% for most tasks, 85% for context-heavy work where you need maximum window
+- Compaction preservation instructions: add explicit notes to CLAUDE.md about what to maintain during compaction (active branch name, key decisions, current task state) so the agent doesn't lose critical context when the window compresses
+- CLAUDE.md compliance is rule-dependent: specific, concise, actionable rules ("always run tests before committing") achieve ~89% compliance; vague instructions ("write clean code") hover around ~35%. This reinforces the existing CLAUDE.md ~150-200 instruction budget -- it is not just length that matters but specificity per rule
+- Status line via shell script: displays current directory, git branch, and context usage color-coded by fill level (green/yellow/red), giving continuous visibility into how much context window remains
+- PostToolUse hooks for auto-formatting: run Prettier or a linter automatically after every Edit/Write tool call; chain linters after formatter for consistent code quality without manual intervention
+
+(see [50 Claude Code Configuration Tips](#50-claude-code-configuration-tips) for complementary settings; see [Key Environment Variables](#key-environment-variables) for `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE` reference)
+
+*Source: 2026-03-12-CodevolutionWeb-httpstcoqxb5hmsok3.md*
 
 ---
 

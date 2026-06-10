@@ -220,7 +220,7 @@ A pattern using Claude Code hooks to create continuous memory without manual int
 
 (see [tools-and-integrations.md](tools-and-integrations.md#hooks-prepost-tool-automation) for hook mechanics, [context-engineering.md](context-engineering.md) for context hierarchy)
 
-*Source: Twitter Bookmarks/The Longform Guide to Everything Claude Code.md*
+*Source: Twitter-Bookmarks/The Longform Guide to Everything Claude Code.md*
 
 #### OpenClaw Memory Lifecycle: Defense-in-Depth Configuration
 
@@ -238,7 +238,33 @@ Production-grade memory configuration for OpenClaw agents, extending the flush/c
 
 (see [Memory Flush and Pre-Compaction Persistence](#memory-flush-and-pre-compaction-persistence))
 
-*Source: Twitter Bookmarks/OpenClaw Memory Masterclass The complete guide to agent memory that survives.md*
+*Source: Twitter-Bookmarks/OpenClaw Memory Masterclass The complete guide to agent memory that survives.md*
+
+#### Memory Search: 3-Layer Retrieval Protocol
+
+- Never fetch full observation details without filtering first: search → timeline → fetch (10x token savings)
+- Layer 1 (`search`): returns index with IDs, timestamps, types, titles at ~50-100 tokens per result
+- Layer 2 (`timeline`): get context around an interesting anchor result -- items before and after in chronological order
+- Layer 3 (`get_observations`): batch-fetch full details only for filtered IDs (500-1000 tokens each); always batch 2+ IDs in one request
+- Filter parameters: `obs_type` (bugfix, feature, decision, discovery, change), `dateStart/dateEnd`, `orderBy` (relevance, date)
+*Source: claude-mem/plugin/skills/mem-search/SKILL.md*
+
+#### Timeline Report: Project Archaeology via Memory
+
+- Generates a "Journey Into [Project]" narrative from the full observation history
+- Report sections: Genesis, Architectural Evolution, Key Breakthroughs, Work Patterns, Technical Debt, Debugging Sagas, Memory Continuity, Token Economics/ROI, Timeline Statistics, Lessons
+- Token Economics: SQLite queries against `observations.discovery_tokens` calculate compression ratio, passive recall savings, explicit recall savings, net ROI
+- Top 5 most expensive observations by `discovery_tokens` = highest-value memories (architecture decisions, hard bugs -- 100K+ tokens to produce originally)
+- Estimate token cost before running; report to user if over 100K
+*Source: claude-mem/plugin/skills/timeline-report/SKILL.md*
+
+#### Cursor Hooks: Cross-IDE Memory Parity
+
+- Cursor lacks `SessionStart` and transcript access; solved via auto-updated `.cursor/rules/claude-mem-context.mdc` with `alwaysApply: true` -- Cursor auto-includes this in all chats
+- Context refreshes at three points: before each prompt submission, after summary completes, and after session ends
+- Cursor captures additional signals beyond Claude Code: shell commands as "Bash" observations, `afterFileEdit` hook for file edit capture, separate MCP tool capture
+- Project registry in `~/.claude-mem/cursor-projects.json` allows the worker to update context files even when triggered from Claude Code working on the same project
+*Source: claude-mem/cursor-hooks/CONTEXT-INJECTION.md, claude-mem/cursor-hooks/PARITY.md*
 
 #### Endless Mode (Beta)
 
@@ -284,7 +310,16 @@ QMD (by Tobi Lutke / Shopify) is an opt-in replacement for the built-in SQLite i
 
 (see [memory-persistence.md#layer-3-claude-mem-plugin-automatic-cross-session](memory-persistence.md#layer-3-claude-mem-plugin-automatic-cross-session) for related cross-session memory patterns)
 
-*Source: Twitter Bookmarks/2026-03-12-nurijanian-if-youre-a-pm-who-uses-claude-codecursor-to-build-and-execut.md (@nurijanian)*
+*Source: Twitter-Bookmarks/2026-03-12-nurijanian-if-youre-a-pm-who-uses-claude-codecursor-to-build-and-execut.md (@nurijanian)*
+
+#### Graph-Enhanced RAG: Five Query Modes (LightRAG)
+
+- LightRAG builds a knowledge graph (entities + relationships) during document insertion, not just a flat vector store -- enables relationship-aware retrieval that standard RAG misses
+- Five query modes: `naive` (pure vector search) → `local` (entity-focused) → `global` (community/summary-level) → `hybrid` (local + global) → `mix` (KG + vector, recommended with reranker)
+- `mix` mode with a reranker is the recommended default for production
+- Four storage types fully pluggable: KV (LLM cache, chunks), Vector (embeddings), Graph (entity-relation structure), DocStatus -- backends include JSON files, PostgreSQL, Neo4j, MongoDB, Redis, Milvus, Qdrant
+- LLM requirements for indexing: minimum 32B parameters, 32KB context (64KB recommended); reasoning models are explicitly excluded from the indexing stage
+*Source: LightRAG/README.md, LightRAG/CLAUDE.md*
 
 ---
 
@@ -336,7 +371,7 @@ Novel approach: FTS over raw chat transcripts rather than summarized/compressed 
 
 (see [memory-persistence.md#layer-2-worklogs-feature-scoped-session-to-session](memory-persistence.md#layer-2-worklogs-feature-scoped-session-to-session) for manual continuity approaches)
 
-*Source: Twitter Bookmarks/2026-03-14-steipete-theres-a-lot-of-cool-stuff-being-built-around-openclaw-if-th.md (@steipete)*
+*Source: Twitter-Bookmarks/2026-03-14-steipete-theres-a-lot-of-cool-stuff-being-built-around-openclaw-if-th.md (@steipete)*
 
 ---
 
@@ -349,6 +384,14 @@ Novel approach: FTS over raw chat transcripts rather than summarized/compressed 
 - Concern: creates vendor lock-in proportional to accumulated context; risk of "black box" memories from other projects interfering
 - (see [context-engineering.md](context-engineering.md) for CLAUDE.md vs MEMORY.md distinction)
 *Sources: Thread by @trq212.md, How Claude remembers your project.md*
+
+#### Auto Memory as Supplementary Evidence
+
+- Skills can read `~/.claude/projects/<project>/memory/MEMORY.md` before launching subagents and pass relevant entries as supplementary context
+- Memory drift detection: if a memory note describes a different approach than a documented learning, treat it as a drift signal worth investigating
+- Graceful absence: if memory directory doesn't exist, skills proceed exactly as before
+- Design principle: augment existing subagents with memory context rather than creating a dedicated memory scanner subagent
+*Source: compound-engineering-plugin/docs/brainstorms/2026-03-18-auto-memory-integration-requirements.md*
 
 ---
 
@@ -375,6 +418,14 @@ for await (const message of query({
 **Fork sessions** to explore alternatives without polluting the main session. If the fork yields good results, merge the learning back into state files.
 
 State files survive even if the SDK session is lost. They are the durable layer. (see [workflow-patterns.md](workflow-patterns.md))
+
+#### Session ID Architecture: Two-ID Pattern for Resume Safety
+
+- Two distinct IDs: `contentSessionId` (user's Claude Code conversation, constant) and `memorySessionId` (SDK agent's internal resume ID, captured after first SDK message)
+- Resume safety: never use `contentSessionId` for resume; only resume when `memorySessionId !== null`
+- Observations stored with `contentSessionId` -- ensures observations remain retrievable via the stable user-facing ID
+- Anti-pattern: `if (session.memorySessionId)` is wrong -- use explicit `!== null` because truthy checks fail on empty strings
+*Source: claude-mem/docs/SESSION_ID_ARCHITECTURE.md*
 
 ---
 
@@ -439,6 +490,41 @@ Treat agent memory like a human team's documentation: some things shared (handbo
 **Obsidian integration at scale:** Symlink the memory folder so daily notes appear in Obsidian on all devices, or index the Obsidian vault via QMD so everything captured becomes searchable by all agents. Obsidian 1.12 CLI enables metadata/property queries instead of reading entire files, reducing token cost for memory lookups.
 
 *Source: Give your Openclaw the Memory it Needs (Full Guide).md*
+
+### Graph Databases vs Vector for Agent Memory
+
+Paul Itoi (TFTC 726) identifies memory as the primary bottleneck in AI architecture. Current text-file memory should evolve toward graph databases for relationship-aware retrieval.
+
+**Core distinction:**
+- Vector databases: store embeddings, search by semantic similarity -- finds "things like this"
+- Graph databases: store entities (nodes) and relationships (edges), search by traversal -- finds "how these connect"
+- Hybrid (recommended): all three -- vector for speed/fuzzy matching, graph for ground truth/relationships, traditional search for exact keywords
+
+**Vector limitations that graph solves:**
+- Confuses semantically similar but contextually unrelated content
+- Misses versioning distinctions (2023 vs 2024 data treated as equivalent)
+- Struggles with code similarity (different patterns, same tokens)
+
+**Zep/Graphiti temporal graph:** Facts have validity windows -- old facts are invalidated, not deleted. Incremental construction (no batch recomputation). Hybrid retrieval: semantic + BM25 + graph traversal. P95 latency: 300ms. Outperformed MemGPT on Deep Memory Retrieval benchmark (94.8% vs 93.4%). (see [tools-and-integrations.md](mcp-servers.md#graph-rag-integrations-for-claude))
+
+**GraphRAG reality check (ICLR 2026):** GraphRAG achieves 13.4% LOWER accuracy on Natural Questions vs vanilla RAG. Particularly poor on time-sensitive queries (16.6% accuracy drop). The benefit is query-type-dependent.
+
+**Pattern:** GraphRAG dominates on complex, relational, multi-entity queries. Vector RAG is faster and sufficient for simple semantic lookups within single documents. When entity count per query exceeds five, vector RAG accuracy drops to 0% (FalkorDB/Diffbot benchmark).
+
+**When NOT to use Graph RAG for memory:**
+- Small corpora or unstructured data (vector is simpler, cheaper, fast enough)
+- FAQ-style self-contained content (no cross-document reasoning needed)
+- Prototyping (vector setup: minutes; graph: hours to days)
+- Cost-constrained -- GraphRAG indexing costs 100-1000x more than vector embedding; entity extraction = ~75% of indexing cost
+
+*Source: Deep-Research/graph-databases-for-ai-agents.md*
+
+### ByteRover Plugin: Hierarchical Auto-Curated Memory
+
+- ByteRover provides automatic cross-session context persistence for OpenClaw -- no manual setup required
+- Memory is organized into a hierarchical, traceable file-based system that is auto-curated from all agent interactions in real-time
+- Represents the file-based, auto-accumulating memory pattern as an alternative to manual worklogs or the claude-mem plugin
+*Source: 2026-03-28-GithubProjects-openclaw-just-got-a-major-upgrade-with-the-new-native-memory.md*
 
 ---
 
@@ -535,7 +621,7 @@ The goal: every mistake makes the system smarter. A bug fixed without updating t
 - Key insight: most people reset AI context every conversation; this pattern makes it compound instead
 - Lighter-weight alternative to full instinct-based learning pipelines (see [skills.md](skills.md#instinct-based-learning-continuous-learning-v2)) -- single file, single rule, no observer architecture needed
 
-*Source: Twitter Bookmarks/2026-03-09-johann_sath-i-gave-my-openclaw-one-rule-every-time-you-learn-something-a.md*
+*Source: Twitter-Bookmarks/2026-03-09-johann_sath-i-gave-my-openclaw-one-rule-every-time-you-learn-something-a.md*
 
 ### Agent Sleep Architecture: Automated Memory Consolidation
 
@@ -550,7 +636,7 @@ A maintenance framework that treats agent infrastructure (skills, rules, memory 
 
 (see [autonomous-agents.md](autonomous-agents.md) for cron/heartbeat scheduling, [workflow-patterns.md](workflow-patterns.md) for maintenance automation)
 
-*Source: Andrew Vibe Coding/Your Agent Needs a Bedtime.md*
+*Source: Andrew-Vibe-Coding/Your Agent Needs a Bedtime.md*
 
 ### Knowledge Distillation Pipeline Reference Architecture
 
@@ -565,6 +651,22 @@ A two-tier architecture for automated knowledge distillation, extending the four
 - **Standard entry format:** `TIMESTAMP | TYPE | Summary | Source` for queryable, versioned entries
 
 *Source: deep-research-report.md*
+
+### Claude Code as Executive Assistant: Institutional Memory at Scale
+
+- Open a fresh directory and prompt Claude to self-organize a markdown-based system; Claude figures out folder structure without explicit design from you
+- Maintain at least one Claude Code session open at all times; run multiple concurrent sessions for parallel workstreams
+- Decision logging: "log decision about X" creates structured records with alternatives considered -- weeks later you have full rationale, not just the outcome
+- System compounds over time: 11,579 lines of institutional knowledge captured in 3 weeks including 82 meeting notes, 18 1:1s, 23 team members with 264 lines of context each
+*Source: 2026-01-21-obie-httpstcokqfccopmdv.md*
+
+### Full Autonomous Agent: ALIVE Context System
+
+- ALIVE context system: structured walnut files (key.md, now.md, tasks.md, insights.md, log.md) per project; cron jobs READ walnuts before researching and WRITE findings back after
+- Each session starts smarter than the last: compounding context via structured read/write per job
+- Voice correction feedback loop: log specific edits ("you wrote X, I changed it to Y because Z") to voice-corrections.md; every drafting cron reads corrections before writing; 151 concrete correction examples beat 39,000 characters of abstract style instructions
+- "A session with no writes is a failure" -- mandatory write to persistent files after every research job prevents doing research and saving nothing
+*Source: 2026-03-27-witcheer-httpstcolnsqgjjxvm.md*
 
 ---
 
@@ -611,11 +713,138 @@ Immutable event-driven project state management replacing static Kanban boards:
 - **Git-event linkage:** Commits mapped to project events for traceability across code and process
 - Applies Martin Fowler's Event Sourcing pattern to project management -- the full audit trail IS the database
 
-(see [workflow-patterns.md](workflow-patterns.md#gsd-context-aware-spec-driven-execution) for phase-based project management alternative)
+(see [workflow-patterns.md](workflow-patterns.md#pattern-6-gsd-get-shit-done-execution-framework) for phase-based project management alternative)
 
 *Source: awesome-openclaw-usecases/usecases/project-state-management.md*
 
----
+### Against Markdown-Only Context Graphs
 
+- Markdown files become "reinventing the database in the worst possible substrate" at scale -- no joins, indexes, or constraints; queries require full-text search across thousands of files
+- Two-copy drift problem: source documents get updated; extracted markdown notes become stale; a database with source IDs avoids this
+- Better architecture: (1) work apps as source of truth, (2) file layer for hot-access metadata, (3) database as the graph storing typed relationships pointing back to sources
+- Schema is context for agents: typed data tells an agent not just what a decision says, but whether it's active, who made it, what it superseded
+*Source: 2026-03-12-kevingu-httpstcodua8rdkzp5.md*
 
+### Obsidian Bases + Claude Code as Second Brain
 
+- Architecture shift: instead of deciding where notes go (PARA's flaw), define what notes are via YAML frontmatter; Obsidian Bases surfaces notes from any angle without relocating them
+- CLAUDE.md files in every vault folder tell Claude what lives there -- Claude reads them at session start without re-explanation
+- Claude Code as vault maintenance layer: "process my inbox" reads every Inbox file, assigns category/subject, moves it; "add Psychology subject to every newsletter mentioning mental models" updates 30 notes in 20 seconds
+- Flat folder structure + Bases database views eliminates the "where do I file this?" decision tax that kills second brain adoption
+*Source: 2026-03-20-noahvnct-httpstcoml56ublpfw.md*
+
+### Obsidian + Claude Cowork as AI Employee: Persistent Business OS
+
+- Memory file is the onboarding doc for an AI that never forgets -- who you are, business structure, processes, tools, communication style; write it once, every session starts fully briefed
+- Automatic memory loop: call transcripts → Drive → Claude processes and writes back to vault; compound effect after 8 weeks produces an AI that catches things you missed
+- Obsidian MCP server gives Claude direct read/write access to the vault -- turns Obsidian from a note app into a live system Claude can maintain automatically
+- One instruction in preferences: "Before answering, always search the Obsidian vault for relevant notes" -- single line makes Claude context-aware without manual copy-paste
+*Source: 2026-03-21-sourfraser-httpstcoo5osbj933j.md*
+
+### LLM-Compiled Personal Knowledge Base (Karpathy Pattern)
+- Ingest raw sources (articles, papers, repos, images) into a `raw/` directory; LLM incrementally compiles a wiki as a collection of `.md` files with summaries, backlinks, and concept articles
+- IDE layer: Obsidian as the frontend for viewing raw data, compiled wiki, and visualizations; the LLM writes and maintains all wiki content -- human rarely edits directly
+- Q&A at scale: once the wiki reaches ~100 articles / ~400K words, an LLM agent can research complex questions against it using auto-maintained index files; no fancy RAG required at this scale
+- Output format choice: render markdown, Marp slideshows, or matplotlib images -- all viewable in Obsidian; file outputs back into the wiki to compound knowledge
+- Health checks: LLM "linting" passes find inconsistencies, impute missing data via web search, surface new article candidates
+- Compounding loop: every query adds something back; the KB becomes the agent's long-term research memory across topics
+- Scale path: as the wiki grows, consider synthetic data generation + finetuning to embed knowledge in model weights instead of context
+
+(see [QMD: External Retrieval Backend](#qmd-external-retrieval-backend) for complementary retrieval tooling)
+
+*Source: 2026-04-02-karpathy-llm-knowledge-bases-something-im-finding-very-useful-recentl.md*
+
+### 8-Agent Obsidian Vault Crew
+- Specialized agent crew managing an Obsidian vault autonomously: Architect (vault design + onboarding), Scribe (brain-dump-to-clean-notes), Sorter (nightly inbox clearing), Seeker (semantic search + citations), Connector (finds hidden note links), Librarian (weekly health audits + broken link repair), Transcriber (meetings to structured notes), Postman (Gmail + Calendar scanning for deadlines)
+- Inter-agent communication: agents alert each other when relevant -- Transcriber processing a meeting notifies Sorter; Postman finding a deadline flags Architect
+- Runs 100% locally (MIT license); works in any language; no cloud dependency
+- Key architectural principle: a coordinated crew is not a stack of isolated tools -- agents share events and trigger each other
+- Contrast with Obsidian + Claude Cowork pattern above: this is a dedicated multi-agent runtime vs a single AI with vault access
+
+(see [Multi-Agent Team Pattern for Solo Founders](autonomous-agents.md#multi-agent-team-pattern-for-solo-founders) for the shared-memory team pattern)
+
+*Source: 2026-04-05-heygurisingh-delete-notion-delete-your-note-taking-app-delete-your-inbox.md*
+
+### Karpathy Wiki Method: Practical Setup Walkthrough
+- Step-by-step implementation of the LLM-compiled knowledge base pattern: create vault in Obsidian, fire up Claude Code, paste Karpathy's gist (gist.github.com/karpathy/442a6bf555914893e9891c11519de94f), agent builds the folder structure automatically
+- **Wiki as cross-project context layer:** point any Claude Code project at your wiki folder -- an executive assistant project reads it for business context, a content strategy project references past research. Build the knowledge once, every AI workflow gets smarter
+- **Relationships over search:** structured wikilinks between concepts let the LLM trace actual connections between ideas, not just pattern-match on keywords. Deeper answers than RAG at this scale
+- **Scale tradeoff:** works well up to hundreds of pages with good indexes. Millions of documents still need proper RAG with embeddings and vector DB. Karpathy confirmed: at ~100 articles and 500K words, well-maintained markdown indexes just work
+- Compounding effect: article 1 creates 10 wiki pages, article 20 creates pages that link back to concepts from articles 1-19 -- density of cross-references surfaces insights you would never find by manual search
+
+(see [LLM-Compiled Personal Knowledge Base (Karpathy Pattern)](#llm-compiled-personal-knowledge-base-karpathy-pattern) for the original synthesis)
+
+*Source: 2026-04-09-VibeMarketer-httpstcovyivrjhowl.md*
+
+### Two-Layer Knowledge Architecture: KBL + BF (LLM Wikid)
+@shannholmberg's framework (open-sourced as `shannhk/llm-wikid`) extending the Karpathy LLM-wiki pattern with an explicit two-layer separation:
+
+- **Knowledge Base Layer (KBL) -- dynamic.** Raw sources (tweets, articles, bookmarks, PDFs, notes, voice memos) dropped into `raw/`. Agent reads, classifies by type, builds structured wiki pages with cross-references, maintains master index with one-line TLDRs. Every question filed back as a new page. The wiki gets richer with every query.
+- **Brand Foundation (BF) -- static.** Only the human edits this. Voice rules, visual style, positioning, audience definition, banned words/phrases. Agents READ before producing anything; they never rewrite it. The anchor that keeps output sounding like you.
+- **Why not RAG?** RAG re-derives at query time by chunking + searching. The compiled-wiki approach (Karpathy's pattern) reads once, cross-references, keeps current. At ~100 articles, compiled outperforms RAG for Q&A. Graphify benchmark: 71.5x fewer tokens per query vs raw-file search. Three eras: one-shot RAG (2020-2023) → agentic RAG with multi-hop retrieval (2023-2024) → context engineering where the agent BUILDS its own context (2025+). The knowledge layer is the infrastructure for era 3.
+- **Five-step setup (~20 min):**
+  1. Clone repo, open as Obsidian vault
+  2. Run agent in Claude Code (or any markdown+bash agent); reads CLAUDE.md schema, scaffolds wiki structure
+  3. Fill `raw/` -- X archive, Obsidian Web Clipper to clippings/, 10 minutes of "everything on my mind" raw thinking, bookmarks
+  4. Run `/wiki-ingest` -- agent sorts clippings, fetches URLs, downloads/analyzes images, classifies, builds wiki with cross-references + counter-arguments + data gaps + master index
+  5. Open Obsidian graph view; query with `/wiki-query`
+- **Quality controls (critical for personal-life use):** bias checks force counter-arguments + data gaps on every page; validation gate -- every AI page starts `explored: false`, only human marks confirmed; confidence levels (high/medium/low/uncertain) tag every page so agent has to be honest about support level.
+- **Maintenance commands:** `/wiki-lint` weekly catches contradictions, stale content, orphan pages, duplicate concepts under different names. Scheduled morning ingest processes overnight what was clipped during the day.
+- **Scale path:** at 300+ pages install qmd (Tobi Lutke) for local hybrid BM25+vector search with LLM re-ranking; has MCP server so agents query as a native tool.
+- **Personal/team/org applications:**
+  - Personal -- journals, book notes, podcast highlights, health metrics; "what patterns do I see in my energy levels last quarter?" returns cited answer from your own data
+  - Content creator -- KBL holds X archive, articles, bookmarks; BF holds voice profile, banned-words doc, visual style guide. Multiple agents (writer, researcher, content strategist) all read from same layer
+  - Company -- KBL holds delivery patterns, agent templates, SOPs; BF holds positioning. Same architecture; agents have role-tuned specs reading from shared central brain (matches @ericosiu's Single Brain pattern)
+- **Pricing angle:** setting up someone's knowledge layer is a $1,500-3,000 service + $300-500/mo retainer. Ten clients in year 1 = $56,800.
+- **Connection to AI maturity levels:** L1 custom prompts (no KL) → L2 manual skills (thin KL) → L3 skills+BF (BF added) → L4 agents with skills reading from compiled KBL+BF → L5 autonomous teams with full compounding KL. Most people sit at L1-L2; the knowledge layer is what unlocks L4-L5.
+- (see [agent-design.md > Five-Agent Fleet + Single Brain Pattern](agent-design.md#five-agent-fleet--single-brain-pattern-dorsey-world-model) for the production team analog; see [bitcoin-ai.md > Personal Bitcoin+AI Research Infrastructure](bitcoin-ai.md#personal-bitcoinai-research-infrastructure-on-mac-mini) for the personal-sovereignty implementation)
+
+*Source: 2026-04-14-shannholmberg-httpstcogbw9gqudjj.md*
+
+### Where the LLM Wiki Pattern Breaks at Agent Scale (Mercury Critique)
+@Ctrl_Alt_Zaid's technical critique distinguishing human-facing knowledge systems from machine-facing memory infrastructure. Karpathy's LLM Wiki is excellent for the former; agents need different substrate.
+
+- **Why the wiki pattern works (for humans):** Markdown is portable, inspectable, versionable, local-first. Obsidian adds graph/backlinks/search. Beats stateless retrieve-answer-forget-repeat by making knowledge compound across sessions. For researchers/writers/analysts/devs learning a domain, this is genuine progress.
+- **Where it breaks for agents -- five failure modes:**
+  1. **Agents need facts, not pages** -- a human reads a page; an agent needs one answer (preferred deployment target, current budget limit, latest user preference). Loading a document to extract one sentence is structural waste across thousands of calls.
+  2. **Tokens are a real budget** -- every irrelevant token loaded increases cost, latency, distraction risk. Long-running agents need selective retrieval, not memory dumps. Right memory > most memory.
+  3. **Memory drift is a reliability problem** -- preferences change, projects evolve, decisions reverse, assumptions expire. If outdated notes rank equally with fresh information, the agent reasons on stale state.
+  4. **Ranking matters more than storage** -- as memory grows: what is newest, what is strongest, what is relevant now, what should be ignored. Storage is easy; prioritization is hard.
+  5. **Continuous writes change everything** -- humans update notes occasionally; agents may write after every task/conversation/tool call/decision. Favors structured writes, deterministic updates, queryable state. At that point memory is infrastructure, not a notebook.
+- **What serious agent memory requires (5 principles converging across systems):**
+  - **Selective injection** -- only relevant memory enters context; everything else stays in storage
+  - **Structured retrieval** -- agents query latest valid preference, task state, related decisions, not "read notes and infer"
+  - **Scoring** -- metadata: confidence, freshness, importance, reinforcement. Without scoring, everything competes equally.
+  - **Conflict resolution** -- when facts disagree, system needs rules (newer wins, higher-confidence wins, or ask user). Silent contradiction = failure.
+  - **Decay** -- some memory should weaken/expire/archive. Remember everything equally → eventually remember poorly.
+- **Hybrid is the answer (not Markdown vs DB):**
+  - **Markdown for humans:** notes, reports, summaries, journals, identity files
+  - **Structured memory for agents:** facts, entities, relationships, preferences, task state, indexes, timestamps, scoring
+  - Markdown as interface; structured memory as substrate
+- **Mercury's positioning:** identity should be human-owned; memory should be machine-efficient. Editable soul/persona files for users + operational memory optimized for retrieval/persistence/token-aware injection. Open source MIT (mercury.cosmicstack.org).
+- **Critical takeaway:** "We are moving from AI you open occasionally to software that runs continuously, knows your workflows, and acts on your behalf. That requires memory designed for machines: structured, selective, scored, inspectable, token-aware, built to improve without drifting."
+- (see [Two-Layer Knowledge Architecture: KBL + BF](#two-layer-knowledge-architecture-kbl--bf-llm-wikid) for the human-side pattern this critiques; the two are complementary, not competing -- KBL is the human readable layer, agent memory is the infrastructure layer)
+
+*Source: 2026-04-28-Ctrl_Alt_Zaid-httpstcoqp6waybwjv.md*
+
+### Large Memory Models (LMMs) -- Engramme
+@svpino's surfacing of Engramme's claim of a new architecture distinct from LLMs and from RAG/vector search.
+
+- **Inversion of LLM:** an LLM compresses world text into weights and answers when prompted. An LMM does the opposite -- captures what you saw, who you talked to, where you were, and surfaces the right piece back at the right moment WITHOUT a prompt.
+- "LMMs are all about *context*" -- designed for how human memory works, not for RAG-style retrieval
+- Founders have 160+ Nature/ICLR publications; closed their Harvard lab to build this
+- **Why this matters as a category:** if "memory" stops being a database and becomes a model in its own right (with its own training objectives, latency, cost surface), the agent-memory infrastructure landscape changes substantially. Worth tracking even if you don't deploy on it -- the conceptual move (context as a learned system) may inform how you architect your own agent memory.
+- Cross-reference: matches the Mercury critique above (see [Where the LLM Wiki Pattern Breaks at Agent Scale](#where-the-llm-wiki-pattern-breaks-at-agent-scale-mercury-critique)) -- different solutions to the same diagnosed problem
+
+*Source: 2026-04-28-svpino-a-large-memory-model-lmm-is-a-completely-new-architecture-an.md*
+
+### agentmemory: 95% Token Reduction for Cross-Session Memory
+- **Open-source memory layer** (github.com/rohitg00/agentmemory, 4K+ stars, trending). Records what Claude does during coding sessions, compresses with AI, injects relevant context back into future sessions.
+- **Benchmarked numbers** (240 real coding sessions):
+  - CLAUDE.md dumps 22,000+ tokens into context at 240 observations. agentmemory: 1,900 tokens for the same observations — **92% less**.
+  - At 1,000 observations, 80% of CLAUDE.md's built-in memories become invisible (truncated). agentmemory keeps 100% searchable.
+  - Up to 95% fewer tokens per session, 200x more tool calls before hitting context limits.
+- **Failure-mode it targets:** "Context limits have killed more sessions than I can count." Eliminates re-explaining codebase each session, losing decisions after `/compact`, starting from scratch.
+- (see [tools-and-integrations.md](tools-and-integrations.md) for the broader cross-session-memory tool space; cf. [Karpathy Wiki Method](#karpathy-wiki-method-practical-setup-walkthrough) for the markdown-first alternative)
+
+*Source: 2026-05-10-ghumare64-you-can-now-give-hermes-claude-code-and-codex-infinite-memor.md*

@@ -36,7 +36,7 @@ A structural breakdown of OpenClaw's core architecture.
 
 (see [agent-design.md](agent-design.md) for brain+muscles pattern)
 
-*Source: Twitter Bookmarks/Anatomy of OpenClaw a guide after which you'll build agents differently.md*
+*Source: Twitter-Bookmarks/Anatomy of OpenClaw a guide after which you'll build agents differently.md*
 
 ### How It Differs from Claude Code
 
@@ -47,6 +47,16 @@ A structural breakdown of OpenClaw's core architecture.
 | Memory | Per-project CLAUDE.md | Nine workspace files + custom folders, persistent on disk |
 | Channels | Terminal only | Telegram, Discord, WhatsApp, iMessage, email, web UI |
 | Proactivity | Reactive only | Heartbeats, cron jobs, autonomous task discovery |
+
+### MaxClaw -- Hosted OpenClaw with Zero-Setup Deployment
+- Hosted version of OpenClaw by MiniMax that removes the Docker/API key/server provisioning barrier entirely
+- One-click deployment in under 20 seconds with support for Telegram, WhatsApp, Discord, and Slack out of the box
+- Persistent memory spanning 200,000+ tokens that adapts to working style over time -- no workspace file configuration needed
+- Expert 2.0 system: 10,000+ pre-built expert agents deployable with a single click, covering common use cases
+- Self-hosted OpenClaw costs $25-250/month; MaxClaw bundles everything for $19/month with no additional API fees -- trades customizability for convenience
+- (see [The Winning Architecture: 6 Requirements for Secure Recursive Agents](#the-winning-architecture-6-requirements-for-secure-recursive-agents) for hosted vs self-hosted tradeoffs)
+
+*Source: 2026-03-09-godofprompt-httpstcoyxb6c4pxll.md*
 
 ---
 
@@ -92,7 +102,7 @@ A common and expensive mistake: using Anthropic's pay-per-use API console instea
 - Earliest reference found (Jan 2026) of the Claude Code -> Cloud VM -> Agent SDK -> Telegram management pipeline
 - Concise enough to serve as a quick-start mental model for cloud-hosted agent deployment
 
-*Source: Twitter Bookmarks/Thread by @bramk.md*
+*Source: Twitter-Bookmarks/Thread by @bramk.md*
 
 ### Cost Anatomy and Optimization
 
@@ -110,7 +120,7 @@ Synthesized from multiple practitioner reports on OpenClaw token costs and reduc
 
 (see [tools-and-integrations.md](tools-and-integrations.md) for OpenRouter and n8n integration details, [memory-persistence.md](memory-persistence.md) for memory architecture)
 
-*Sources: Clawdbot aka Openclaw/OpenClaw Too Expensive Try This Instead (97% Reduction).md, Twitter Bookmarks/The OpenClaw Cost Optimization Playbook.md, Twitter Bookmarks/2026-03-04-slash1sol-stop-wasting-tokens.md*
+*Sources: Clawdbot-aka-Openclaw/OpenClaw Too Expensive Try This Instead (97% Reduction).md, Twitter-Bookmarks/The OpenClaw Cost Optimization Playbook.md, Twitter-Bookmarks/2026-03-04-slash1sol-stop-wasting-tokens.md*
 
 ---
 
@@ -186,6 +196,18 @@ workspace/
 
 *Sources: I Burnt $127 in API Credits.md, OpenClaw Best Practices.md, 3 cron jobs.md*
 
+### Five-Step OpenClaw Setup for Maximum Effectiveness
+
+A prioritized checklist for turning a default OpenClaw install into a proactive, goal-aligned agent (see [agent-design.md](agent-design.md) for persona and architecture patterns, [memory-persistence.md](memory-persistence.md) for memory setup):
+
+1. **Brain dump** -- Tell your agent your interests, career, goals, ambitions, and anything personal. Without this context, the agent cannot work toward your objectives.
+2. **Connect your tools** -- Ask the agent to connect to every tool you use daily; it will figure out the integration. Then create a skill for each one. Example: agent checks a todo list (Things 3) every morning and completes any tasks it can.
+3. **Build a Mission Control** -- A custom NextJS hub the agent builds and maintains. When the agent lacks a tool for a task, it builds one inside Mission Control. This creates a growing internal toolset over time.
+4. **Write a mission statement** -- A one-sentence north star that governs every action. Example: "An autonomous organization of AI agents that does work for me and produces value 24/7." Place it at the top of Mission Control so every task aligns with it.
+5. **Make it proactive** -- Schedule the agent to run a task at a fixed time (e.g., 2am nightly) that moves one step closer to the mission statement. Without explicit proactivity expectations, the agent stays passive.
+
+*Source: Clawdbot-aka-Openclaw/Research/Alex Finn recos.md*
+
 ### Post-Install Hardening Checklist: 9-Section Production Readiness
 
 @moritzkremb's comprehensive 30-60 minute hardening pass for turning a fresh OpenClaw install into production-usable:
@@ -203,7 +225,7 @@ workspace/
 
 Corroborates security findings in [Real-World OpenClaw Security Audit](#real-world-openclaw-security-audit-findings) -- this checklist addresses every gap the audit found.
 
-*Source: Twitter Bookmarks/2026-03-04-moritzkremb-openclaw-optimized-setup-guide.md*
+*Source: Twitter-Bookmarks/2026-03-04-moritzkremb-openclaw-optimized-setup-guide.md*
 
 ### RAG-Based Memory with pgvector
 
@@ -224,7 +246,7 @@ PostgreSQL + pgvector as a semantic memory layer for agents needing better recal
 - **File system organization:** Keeping all agent files in a single `.openclaw` folder gets messy fast -- move human-editable files (SOUL.md, MEMORY.md) to an accessible location
 - **Self-sustaining agents:** Each agent should be independently functional, not scripts dependent on a main agent
 
-*Source: Twitter Bookmarks/This is how you actually build an AI team via OpenClaw ANTILARP.md*
+*Source: Twitter-Bookmarks/This is how you actually build an AI team via OpenClaw ANTILARP.md*
 
 ### Three-Tier Memory Architecture for Self-Improving Agents
 
@@ -240,11 +262,53 @@ A layered memory system that scales beyond flat MEMORY.md as agent complexity gr
 
 *Sources: How to set up OpenClaw Agents that actually get better Over Time.md, Before You Do Anything With OpenClaw.md*
 
+### Full Autonomous AI Agent Setup: 18 Cron Jobs, Three-Model Stack
+
+- Architecture: Mac Mini M4 (always-on) + Hermes Agent + Telegram bot + 18 cron jobs + 35 shell scripts + 6 custom skills + ALIVE context system
+- Three-model stack by role: GLM-5 (interactive chat, tool calling), GLM-4.7 (cron jobs, cheaper), Qwen 3.5 4B via local Ollama (context compression -- keeps compression free and rate-limit-free)
+- Critical failure mode: using cloud API for compression creates a death spiral -- cron jobs → context grows → compression calls API → rate limit hit → compression fails silently → sessions grow unbounded
+- Session idle timeout: set to 60 minutes (not 1440-minute default); short sessions = clean context = fast responses
+- Source diversity rule: explicitly specify fetch order (Techmeme → Hacker News → Reddit → web search) or the model defaults to Reddit for everything
+- LaunchAgent (not cron) for auto-restart: cron lacks login credentials; LaunchAgent runs inside the user session where Claude's auth is available
+(see [memory-persistence.md](memory-persistence.md) for the ALIVE context system details)
+*Source: 2026-03-27-witcheer-httpstcolnsqgjjxvm.md*
+
+### Hermes Agent Practical Setup Tips
+
+- Nightly skill evolution: set up a cronjob to run skill optimization nightly; add a second cronjob to evaluate the changes so you don't have to manually review; critical: make it stop anything trying to game the optimization loop (prevents misaligned self-modification)
+- Honcho for memory: install plastic-labs/honcho if hitting memory issues; provides cross-session recall, memory synthesis, and better long-term storage; avoids repeating same mistakes or pulling too much context
+- USER.md and MEMORY.md character limits: Hermes has much smaller limits than OpenClaw; MEMORY.md: 2200 chars max; USER.md: 1375 chars max; populate and curate thoughtfully -- quality over quantity helps it learn faster
+- OpenClaw → Hermes migration: expose OpenClaw agents as OpenAI-compatible endpoints; lets you run both side-by-side with zero disruption while transitioning; Hermes can call them directly, existing crons keep working
+- Session timeout config: change default session timeout and expiry; especially useful for threads not used daily -- prevents agent from losing context unnecessarily
+- Anti-bikeshedding rule: don't start changing your skin/configuration until agents are actually doing work; easy to spend all time on setup and go down the rabbit hole while never shipping
+*Source: 2026-04-02-Rigario-many-are-running-nousresearch-hermes-agent-now-here-are-some.md*
+
+### Personal Hermes Agent Crew (vmiss33)
+@vmiss33's "what to actually use a personal AI agent for" walkthrough -- direct counter to "I installed OpenClaw and stared at it for an hour." Practical methodology: write down what you do for a day, then a week, then ask: "what took a lot of time?" and "what didn't provide value?"
+
+- **The softer-stuff angle:** beyond model selection, look at life friction points. Things you forget to do. Things that make life harder. (Drink water reminders. Posture checks. Movement breaks.)
+- **The agent crew (separate profiles per provider/model):**
+  - **Tech Research Agent** -- Nous Portal, MiniMax M2.7. Used for research briefs with citations -- the agent teaches user how to do something (e.g., model quantizations) rather than doing it
+  - **Tech Task Master Agent** -- ChatGPT Plus subscription via Codex (NOT API). GPT 5.5. Builds skills for Hermes; the "anything" agent
+  - **Lifestyle Agent** -- OpenRouter free tier, NVIDIA Nemotron 3 Super. Reminds via Telegram (water, posture, movement)
+  - **Lifestyle/Research Agent** -- LOCAL Qwen 3.5 9B quant on RTX 4070 (8GB VRAM, 64K context, llama.cpp serving). MCAS / food allergy research; recipe brainstorming
+- **Provider/cost strategy:**
+  - **OpenRouter free models:** put $10 in credits to unlock 1,000 req/day + 20 req/min on free models. Free account = 50 req/day (gone fast)
+  - **Nous Portal $10/mo subscription** -- experimentation, includes tool calling
+  - **Local models** on consumer hardware -- 8GB VRAM laptop or 16GB Mac runs Qwen 3.5 9B surprisingly well via LM Studio + Hermes
+  - **ChatGPT Plus $20/mo via Codex subscription** (not API!) -- working flawlessly
+  - **NVIDIA NIM** -- many free models for testing
+  - **DeepSeek v4 API** -- 75% discount through end of May 2026 (subsidized)
+- **Mistake most people make:** starting with the tech instead of the problem. "You don't need 3090s. Start with your life. Your workflow. Your friction points. Then build agents around that."
+- (see [vmiss33's guide](https://x.com/vmiss33) for ongoing posts)
+
+*Source: 2026-05-03-vmiss33-httpstcoosab1oa3qx.md*
+
 ---
 
 ## Brain + Muscles Architecture
 
-The most cost-effective and capable setup separates orchestration ("brain") from execution ("muscles") (see [agent-design.md#brain--muscles-pattern-from-openclaw](agent-design.md#brain--muscles-pattern-from-openclaw) for the general pattern).
+The most cost-effective and capable setup separates orchestration ("brain") from execution ("muscles") (see [agent-design.md#brain-muscles-pattern](agent-design.md#brain-muscles-pattern-from-openclaw) for the general pattern).
 
 ### Brain: Orchestration Model
 
@@ -393,7 +457,7 @@ Current model pricing and performance benchmarks for agent work.
 
 ### Model Routing: Brain/Muscles with Specific Model Picks
 
-Concrete model assignments for the brain/muscles architecture (see [agent-design.md](agent-design.md#brain--muscles-pattern) for the architectural pattern):
+Concrete model assignments for the brain/muscles architecture (see [agent-design.md](agent-design.md#brain-muscles-pattern-from-openclaw) for the architectural pattern):
 
 | Role | Premium Pick | Budget Pick | Rationale |
 |------|-------------|-------------|-----------|
@@ -409,7 +473,7 @@ Concrete model assignments for the brain/muscles architecture (see [agent-design
 - Cost tracking: `npx clawculator --snapshot`
 - MiniMax M2.5 can run at $0.02-$0.05/day for main model; pair with Codex ($20/mo OpenAI) for coding
 
-*Source: Twitter Bookmarks/2026-03-07-AlexFinn-brains-muscles-model-openclaw.md*
+*Source: Twitter-Bookmarks/2026-03-07-AlexFinn-brains-muscles-model-openclaw.md*
 
 ### CEO-Only Main Agent Pattern
 
@@ -418,7 +482,69 @@ Concrete model assignments for the brain/muscles architecture (see [agent-design
 - Benefit: main agent responds instantly because it is never busy with tasks
 - Corroborates brain/muscles and direct vs boss routing patterns with a simpler framing (see [Multi-Agent Communication: Direct vs Boss Routing](#multi-agent-communication-direct-vs-boss-routing))
 
-*Source: Twitter Bookmarks/Thread by @johann_sath 1.md*
+*Source: Twitter-Bookmarks/Thread by @johann_sath 1.md*
+
+### Two-Agent Architecture for Long-Running Projects
+
+- Two-agent architecture: Initializer agent (sets up environment, creates feature list in JSON with pass/fail fields, initial git commit); Coding agent (one feature at a time, updates progress file and git history)
+- Feature list as cognitive anchor: store in JSON not Markdown -- models are empirically less likely to inappropriately overwrite JSON vs Markdown
+- Clean state requirement: every coding session ends with a git commit, progress file update, and reversion to a working state -- not a nice-to-have, a first-class constraint
+- Two failure modes: (1) attempting too much without testing/documenting, (2) looking at partial progress and declaring victory -- both solved by initializer + feature list architecture
+*Source: 2026-03-17-rohit4verse-httpstcoh4kcn5wwnx.md*
+
+### Sandboxed Personal AI Coordinator with Local Models
+@intangiblecoins's "Clem" pattern: a single AI assistant on Signal that coordinates a Mac Mini stack of local models, Bitcoin node, analytics DB, and Lightning wallet -- with strict data isolation.
+
+- **Coordinator on Signal 24/7** routes queries to local models (Gemma4 26B, DeepSeek R1 32B) as appropriate; cloud APIs only when local models can't handle it
+- **Strict scope isolation:** zero access to iCloud, email, contacts, or personal data; operates entirely within a sandboxed research workspace -- coordinator powerful inside its scope, blind outside
+- **Tool surface:** Bitcoin node + analytics DB + Obsidian vault (2,200+ docs) + Kuzu graph + LLM wiki + Lightning wallet -- all local, all owned, all auditable
+- **Why this pattern matters:** demonstrates the personal-sovereignty version of the Five-Agent Fleet pattern -- one human, one coordinator, many tools, no cloud dependency, ~$100/mo
+- (see [bitcoin-ai.md](bitcoin-ai.md#personal-bitcoinai-research-infrastructure-on-mac-mini) for the full Mac Mini stack; see [agent-design.md > Five-Agent Fleet + Single Brain](agent-design.md#five-agent-fleet--single-brain-pattern-dorsey-world-model) for the team/business analog)
+
+*Source: 2026-04-12-intangiblecoins-spent-the-last-month-building-a-personal-ai-research-infrast.md*
+
+### LM Studio as Official OpenClaw Provider
+- LM Studio (Mac/Windows/Linux local-model runner) became an official OpenClaw provider
+- Onboard: `openclaw onboard --auth-choice lmstudio`
+- Eliminates per-token cloud cost for OpenClaw deployments by routing brain/muscles work through local LM Studio models
+- Strengthens the local-first OpenClaw stack alongside Ollama and direct GGUF setups (see [Brain + Muscles Pattern](#) and [Local Model Hybrid](#) for the cost/performance tradeoffs)
+
+*Source: 2026-04-13-lmstudio-lm-studio-is-now-an-official-openclaw-provider-run-openclaw.md*
+
+### Kimi K2.6 -- Long-Horizon Coding + 300-Agent Swarms
+Moonshot's Kimi K2.6 release. Open-source SOTA on multiple coding/agent benchmarks: HLE w/tools 54.0, SWE-Bench Pro 58.6, SWE-bench Multilingual 76.7, BrowseComp 83.2, Toolathlon 50.0.
+
+- **Long-horizon coding:** 4,000+ tool calls and 12+ hours of continuous execution per session, with cross-language generalization (Rust, Go, Python) and across task types (frontend, devops, perf optimization)
+- **Agent swarms scaled up:** 300 parallel sub-agents × 4,000 steps per run (up from K2.5's 100 / 1,500). One prompt → 100+ files generated
+- **Motion-rich frontend output:** native videos in hero sections, WebGL shaders, GSAP + Framer Motion, Three.js 3D
+- **Powers OpenClaw + Hermes Agent** for 24/7 autonomous operations -- production-grade coding workflows pair K2.6 with Kimi Code
+- **Claw Groups (research preview):** bring your own agents, command friends' agents, mix bots and humans in the loop
+- Available in chat mode and agent mode on the Moonshot platform; weights and API both released
+- Significance: open-source frontier closes faster than expected -- agent-grade open weights now match closed frontier on long-horizon coding
+
+*Source: 2026-04-20-Kimi_Moonshot-meet-kimi-k26-advancing-open-source-coding-open-source-sota.md*
+
+### Local LLM Cheat Sheet for 16GB Devices
+@gkisokay's curated lineup of small local models for Mac Mini / personal laptop with 16GB RAM. Q4_K_M quantization unless noted. All in GGUF format.
+
+- **Daily-use tier:**
+  - **Qwen3.5 9B** -- daily driver. Chat, drafting, research, translation. "If you keep only one, keep this."
+  - **DeepSeek-R1 Distill Qwen 7B** -- reasoning. Math, logic, step-by-step. Slower but worth it.
+- **Specialty tier:**
+  - **Qwen2.5 Coder 7B** -- code completions, refactors, debugging, repo Q&A
+  - **Llama 3.1 8B** -- long context. RAG, doc chat, codebase Q&A. Output not top-tier; context strong for size.
+  - **Phi-4 Mini Reasoning** -- compact thinker. Logic, structured answers, math. Smaller context.
+- **Efficiency tier:**
+  - **Gemma 4 E4B** -- writing, chat, light agents, structured output
+  - **Phi-3.5 Mini (Q5_K_M)** -- summaries, extraction, doc chat. Pair with bigger model.
+  - **Qwen3.5 2B** -- summaries, tagging, rewrites, lightweight sidekick
+- **Micro tier:**
+  - **Qwen3.5 0.8B (Q5_K_M)** -- classification, keyword routing, binary decisions, triage
+  - **Gemma 4 E2B-it** -- lightweight chat, quick Q&A, summaries, tiny agents
+- **Recommended pairings:** single = Qwen3.5 9B; two-model = Qwen3.5 9B + Qwen2.5 Coder 7B (code) OR Qwen3.5 9B + Phi-3.5 Mini (support tasks)
+- (see [Brain + Muscles Pattern](#brain--muscles-pattern-from-openclaw) for how to combine these as muscles to a frontier brain)
+
+*Source: 2026-04-21-gkisokay-the-local-llm-cheat-sheet-for-your-16gb-ram-device-i-pulled.md*
 
 ---
 
@@ -489,6 +615,27 @@ Patterns for structuring SOUL.md to maximize agent reliability and autonomy.
 - (see [context-engineering.md](context-engineering.md) for compaction survival)
 
 *Sources: Thread by @kloss_xyz 1.md, Before You Do Anything With OpenClaw.md, How to set up OpenClaw Agents that actually get better Over Time.md*
+
+### clawchief: OpenClaw as Configured Operating System
+- clawchief (github.com/snarktank/clawchief) is an operating layer on top of OpenClaw, not a replacement -- installs skills + workspace files that transform OpenClaw into a configured executive assistant
+- HEARTBEAT.md is the proactivity engine: instructs the agent to read the priority map, auto-resolver, meeting-notes policy, live task file, and only message when something actually matters -- prevents both passivity and noise
+- Single canonical task file (`clawchief/tasks.md`) is the live source of truth for the day; agent promotes due-today items and archives completions automatically; eliminates scattered context
+- Private context files (AGENTS.md, SOUL.md, USER.md, IDENTITY.md, MEMORY.md) are where the template becomes personal -- tone, boundaries, business preferences, long-term memory
+- TOOLS.md holds environment-specific notes (preferred email accounts, tracker quirks, local environment details, target-market notes) that should not be buried in prompts
+- Cron jobs are the activation event: executive assistant sweep, daily task prep, business-development sourcing -- agent becomes dramatically more useful when it wakes itself up for recurring work
+- Key principle: "Generic assistants are generic because they are under-configured. Great assistants are opinionated, specific, and deeply shaped around one person's operating reality"
+
+(see [The Self-Improvement Loop](#the-self-improvement-loop) and [Verbalization as a Core Skill](#verbalization-as-a-core-skill) for related configuration philosophy)
+
+*Source: 2026-04-02-ryancarson-httpstco72mblecaso.md*
+
+### gbrain: Opinionated OpenClaw Agent Brain Configuration
+- Garry Tan's personal OpenClaw/Hermes Agent brain configuration -- the behavioral and identity layer, complementary to his gstack (infrastructure layer)
+- Demonstrates the pattern of separating agent identity/personality (brain) from agent capabilities/tools (stack) in the OpenClaw ecosystem
+- Relevant as a real-world example of how experienced builders configure the OpenClaw agent identity layer
+- GitHub: garrytan/gbrain
+
+*Source: GitHub Stars*
 
 ---
 
@@ -572,7 +719,7 @@ OpenClaw cron jobs have two session targets that significantly affect agent beha
   - Separate bot per agent may be simpler and more reliable
 - Counterargument: forum topics add failure points that may not justify the organizational value
 
-*Source: Twitter Bookmarks/2026-03-08-linuz90-openclaw-telegram-forum-topics.md*
+*Source: Twitter-Bookmarks/2026-03-08-linuz90-openclaw-telegram-forum-topics.md*
 
 ### Overnight Autonomous Work Pattern
 
@@ -600,6 +747,119 @@ Three cron jobs that keep the infrastructure healthy. These are distinct from ta
 - Supplement with a weekly token hygiene cron that reviews MEMORY.md and TOOLS.md for outdated entries, and a nightly memory maintenance cron that moves lessons from daily notes to lessons.md and archives old daily notes.
 
 *Sources: 3 cron jobs.md, OpenClaw Best Practices.md*
+
+### Production Multi-Agent Systems: Karpathy Loop and Self-Healing Crons
+
+- Model routing slashes costs: mapping 48 automated jobs to cheapest capable model reduced API costs from $500/day to $25/day
+- Multi-agent coordination via shared context directory: a "signal bus" where agents read and write to one shared folder -- no explicit orchestration needed
+- Self-healing cron doctor: script running twice daily that reads every job's error log and auto-fixes pattern-matched failures
+- Karpathy loop / autogrowth: one agent reviews its own performance nightly, scores experiments, and modifies its own cron instructions -- every day it gets slightly better
+- Agent compounding: week 1 output is mediocre; by week 8, every correction is stored; a feedback file with 200+ entries means 200 corrections the agent will never repeat
+- Practical startup: begin with 3 agents and 5 crons; run clean for a month before scaling
+*Source: 2026-03-15-ericosiu-httpstcokldqwohczf.md*
+
+### Session File Bloat: Cron Output Accumulation Anti-Pattern
+
+- Anti-pattern: every cron job output stored in session files; months of accumulated .jsonl files load into context on every message, causing up to 95% response time slowdown
+- Fix: delete old .jsonl files except the main session, then rebuild sessions.json to only reference sessions that still exist on disk
+- Cron job output accumulation is invisible until performance degrades significantly -- periodic session file cleanup should be a scheduled maintenance task
+- General pattern: any long-running autonomous agent with persistent session storage will accumulate stale context unless it has an explicit cleanup mechanism
+*Source: 2026-03-19-sharbel-ran-this-on-mine-this-morning-my-openclaw-had-been-getting-s.md*
+
+### Cloud-Scheduled Tasks: Decoupling Agent Execution from Local Machine
+
+- Claude Code supports cloud-based scheduled recurring tasks: set a repo, a schedule, and a prompt; executes via cloud infrastructure on schedule
+- Decouples agent execution from local machine uptime -- enables true overnight/asynchronous autonomous operation without leaving a laptop running
+*Source: 2026-03-20-noahzweben-you-can-now-schedule-recurring-cloud-based-tasks-on-claude-c.md*
+
+### Autonomous Overnight Research Loop
+
+- Core loop: read context → modify code → run timed experiment → evaluate metric → keep or revert → repeat indefinitely without stopping for human input
+- "NEVER STOP" directive: once started, the agent runs until manually interrupted; no confirmation gates inside the loop
+- Fixed time budget per experiment (e.g., 5 minutes) makes all runs platform-comparable; enables ~100 experiments per human sleep cycle
+- Single metric + single editable file + single immutable harness is the scoping pattern that makes autonomous iteration safe and reviewable
+- Results logged to a separate untracked TSV; git commits act as experiment checkpoints: `keep` = advance branch, `discard` = git reset
+- Simplicity criterion: a small improvement that adds ugly complexity is a discard; removing code to get equal performance is a keep
+- Crash handling: fix typos and re-run; abandon fundamentally broken ideas; record `crash` status and move on
+*Source: autoresearch/README.md*
+
+---
+
+### program.md as Lightweight Agent Operating System
+
+- `program.md` functions as a minimal SKILL.md for a fully autonomous agent: defines scope, rules, constraints, output format, and the main loop in a single Markdown file the human iterates on
+- Human role = "programming the program.md," not the implementation files; the agent executes, the human refines the instruction set
+- Explicitly defines what the agent CAN and CANNOT modify (e.g., train.py = editable; prepare.py = read-only), establishing hard boundaries between agent territory and invariant harness
+- Demonstrates that a skill can serve as an entire operating model for an agent, not just a reference guide
+- (see [skills.md](skills.md#skills-sops-for-ai-agents) for the SKILL.md format this extends)
+*Source: autoresearch/program.md*
+
+---
+
+### Overnight Autonomous Job Manifest Pattern
+
+- `/overnight` command creates a JSON manifest for unattended batch or resume-mode jobs: `name`, `working_dir`, `items`, `prompt_template` fields
+- Two job modes: batch (list of similar items processed independently) and resume (single long-running pipeline with checkpoint tracking)
+- Prompt template requirements: what to do with each item (specific), reference file locations, how to check if already done (idempotency), expected output format, and for resume mode -- instruction to check `{checkpoint_file}` before starting
+- Status dashboard tracks progress, failure count, last run time, checkpoint file, and log path -- enables human oversight without interrupting the run
+- `/overnight resume` pattern: find manifest, check checkpoint for remaining work, re-launch orchestrator
+*Source: claude-code-synthesis/commands/overnight.md*
+
+---
+
+### Autopilot TDD Workflow (Task Master)
+
+- `tm autopilot <taskId>` runs a deterministic RED/GREEN/COMMIT loop per subtask: generate failing tests → implement code to pass → commit → advance to next subtask → push and open PR
+- Guardrails: never commits to default branch; only commits on green tests; enforces configurable coverage threshold; pauses with full state artifacts after 3 failed GREEN attempts
+- Resumable: state and JSONL event log stored in `.taskmaster/reports/runs/<run-id>/`; `--resume` picks up from last checkpoint
+- Orchestration model: `WorkflowOrchestrator` returns "work units" to the Claude executor via MCP -- state management and code generation are cleanly separated
+- Prompt composition uses three layers: base rules (git + test workflow), task context injection (subtask description + acceptance criteria + phase), and phase-specific instructions (RED: generate failing tests only; GREEN: implement minimal code)
+- `--dry-run` prints the full execution plan without making changes
+- (see [workflow-patterns.md](workflow-patterns.md#pattern-2-the-ralph-loop-autonomous-coding) for the related Ralph Loop pattern)
+*Source: claude-task-master/.taskmaster/docs/autonomous-tdd-git-workflow.md*
+
+---
+
+### tm loop: Task Master Iteration Pattern
+
+- `task-master loop --iterations N` spawns a fresh Claude Code session per iteration, each picking the next task, completing it, committing, and exiting -- fresh context per iteration prevents quality degradation
+- A shared `loop-progress.txt` persists notes across iterations so each fresh session has context about prior work without full conversation history
+- Built-in presets: `default` (task completion), `test-coverage` (write tests for uncovered lines), `linting` (fix lint/type errors), `duplication` (refactor via jscpd), `entropy` (code smell cleanup); custom prompt files accepted via file path
+- Completion command (`--on-complete`) runs a shell command when all tasks finish -- enables webhook notifications
+- Variation on the Ralph Loop pattern (see [workflow-patterns.md](workflow-patterns.md#pattern-2-the-ralph-loop-autonomous-coding)); key difference: task-master loop uses structured task metadata and Taskmaster's task selection logic rather than plain text files
+- Credit: "Ralph Wiggum pattern" attributed to Jeffrey Huntley / Matt Pocock
+*Source: claude-task-master/.taskmaster/docs/loop-prd.md*
+
+---
+
+### Expect as Native Workflow Integration
+
+- Agent self-doubt hook: Claude Code hook on `assistant_response` detects task-completion language and injects a verification run before the response reaches the user
+- Reverse integration: Expect finds a bug, opens issue or sends message back to the coding agent, agent fixes, Expect re-verifies -- human only sees the final result
+- MCP server exposure: any agent can call `expect.verify({description: "..."})` mid-task, not just at the end -- highest leverage because it works across all agents
+- Preview URL auto-detection: detects Vercel/Netlify preview deploys from git metadata or CI env vars; auto-runs on every preview deploy with zero config
+- `expect watch` daemon: continuous background re-run of the relevant subset of last test plan on every hot reload
+- Spec-driven testing: `expect init` generates `expect.plan.md` that lives in the repo; developers edit it like a spec doc; Expect executes it -- the spec IS the test suite
+- (see [testing-verification.md](testing-verification.md#automated-verification-hooks) for hook-based verification patterns)
+*Source: expect/.specs/workflow-integration-brainstorm.md*
+- Role-specialized agents (marketing agent, coding agent, recruiting agent)
+
+### Claude Computer Use + Dispatch: Desktop Agent Control from Phone
+
+- Claude Computer Use allows Claude to control your Mac desktop while you're away; Claude Dispatch connects desktop app to mobile Claude app
+- Scheduling: supports task scheduling (name + description + prompt + frequency) for recurring autonomous workflows
+- Example use cases: post jobs on Fiverr, collect URLs from Meta Ads Library, save to Canva -- multi-step cross-app automation from a single phone prompt
+- Critical: computer must stay on; dedicated always-on hardware (Mac Mini) is the recommended production setup
+*Source: 2026-03-25-rubenhassid-httpstcosbyxsl3qua.md*
+
+### 20-Agent Content Pipeline: Specialization and Quality Gates
+
+- Each of 20 agents runs in its own context window, specializes in one job (hook writing, body copy, CTA, weapons check, etc.) and has a hard quality bar to clear before output passes to the next agent
+- Quality gate pattern: every hook goes through minimum 3 iterations with diagnosis of weaknesses before rewrite; Hook Manager scores on 5 dimensions, must hit 10/10; nothing advances until it passes
+- "Weapons Check" step: every script line independently scored on Invention Novelty and Copy Intensity; both must hit 10/10; lines that fail get rewritten; pure filler gets cut
+- Research phase precedes all writing: 15 YouTube keyword searches across 3 time windows, Reddit pain mining, ~5,000 X posts sorted by engagement; all indexed as "ammunition" for writing agents
+- Key architecture principle: don't use one agent for research + writing + editing; specialize each agent and give it a supervisor that enforces the quality bar
+*Source: 2026-03-23-MitcheIl-httpstco1ax8svq17s.md*
 
 ### Closed-Loop Agent Architecture: Propose-Execute-Feedback-Retrigger
 
@@ -669,7 +929,7 @@ First documented case of an OpenClaw agent autonomously spawning a child agent a
 
 (see [Model Routing: Brain/Muscles with Specific Model Picks](#model-routing-brainmuscles-with-specific-model-picks) for brain/muscles cost optimization)
 
-*Source: Twitter Bookmarks/2026-02-11-getAlby-an-openclaw-bot-spawned-a-child.md*
+*Source: Twitter-Bookmarks/2026-02-11-getAlby-an-openclaw-bot-spawned-a-child.md*
 
 ### Bugs-First Autonomous Priority Enforcement
 
@@ -793,6 +1053,170 @@ Single-CURL-request mechanism for agents to gain a Lightning wallet, extending t
 
 *Source: Thread by @rolznz.md*
 
+### AutoAgent: Self-Improving Agent via Overnight Iteration
+- AutoAgent (github.com/kevinrgu/autoagent) automates the prompt-tools-config tuning loop: you write a `program.md` in plain English, add benchmark tasks, and the system rewrites and tests the agent configuration overnight
+- Meta-agent loop: a "meta-agent" reads your instructions → rewrites the full agent setup → tests against real benchmarks → keeps improvements → discards regressions → repeats autonomously
+- Benchmark results: #1 SpreadSheetBench (96.5%), #1 TerminalBench with GPT-5 (55.1%) -- reached via this automated self-improvement process, not manual tuning
+- Setup: `git clone` → `uv sync` → write `program.md` → add tasks in `tasks/` → run overnight; runs inside Docker so nothing breaks on the host
+- Conceptual framing: "AutoML but for agents" -- same principle as automated hyperparameter search applied to agent architecture
+- Operational implication: when agent performance is poor, the bottleneck is usually the prompt/tools/config, not the model -- AutoAgent makes that bottleneck automatically addressable
+
+(see [program.md as Lightweight Agent Operating System](#programmd-as-lightweight-agent-operating-system) for the related single-file agent OS pattern)
+
+*Source: 2026-04-04-Axel_bitblaze69-something-for-your-to-do-list-this-weekend-clone-one-repo-wr.md*
+
+### Autoresearch Applied to Marketing -- Autonomous Experiment Loops
+- Karpathy's autoresearch pattern (modify variable, deploy, measure, keep/discard, repeat) generalizes beyond ML to any domain with a measurable feedback signal
+- Marketing implementation uses three files: baseline.md (fixed constraints/ICP), template.json (asset being optimized), program.md (campaign goal + scoring rule) -- mirrors the prepare.py/train.py/program.md architecture
+- Autonomous loops can execute 36,500+ experiments/year vs ~30 for traditional teams at $100-150/month compute cost -- the moat is the accumulated experiment history, not any single result
+- Multiple loops running simultaneously across channels (email, ads, landing pages) create compounding effects -- each loop's discoveries feed the others
+- (see [Autonomous Overnight Research Loop](#autonomous-overnight-research-loop) for the core autoresearch pattern; see [program.md as Lightweight Agent Operating System](#programmd-as-lightweight-agent-operating-system) for the three-file architecture)
+
+*Source: 2026-03-08-ericosiu-httpstcolgxham4tdn.md*
+
+### Autoresearch Deployment Guide -- Mac and Windows
+- Autoresearch replaces the human researcher with an AI agent in an autonomous loop: read instructions, modify code, run 5-min training, measure val_bpb score, keep or discard, repeat (~12 experiments/hour)
+- Three-file architecture: prepare.py (fixed constraints), train.py (the thing being optimized), program.md (instructions for the agent -- the human's primary leverage point)
+- Claude Code recommended for full autopilot mode; Cursor for semi-manual learning where you observe and approve each step
+- Most experiments fail (10-20 out of 100 are keepers) -- the agent handles discard/keep automatically; results tracked in results.tsv with each successful experiment saved as a git commit
+- (see [AutoAgent: Self-Improving Agent via Overnight Iteration](#autoagent-self-improving-agent-via-overnight-iteration) for the meta-agent variant of this pattern)
+
+*Source: 2026-03-08-hooeem-httpstcon2ph5qetco.md*
+
+### Five-Agent Fleet + Single Brain Marketing OS
+@ericosiu's six-month production deployment running an AI marketing agency on top of an OpenClaw-style fleet. Five agents, each owning a business function, coordinated by a World Agent and grounded in a continuously-ingested Single Brain.
+
+- **The fleet (one agent per function, no overlap, no gaps):** Alfred (chief of staff/orchestrator), Oracle (SEO/analytics), Arrow (sales pipeline -- inbound BDR + outbound), Cyborg (recruiting), Flash (content factory)
+- **Single Brain layer (Dorsey "world model"):** unified vector DB ingests Slack, CRM, Gong transcripts (6,862+), Granola notes, Google Analytics, Search Console, deliverables, financials every 15 minutes. Six months of continuous ingestion is the moat; competitors can't fast-forward proprietary data.
+- **Sales pipeline (Arrow):** runs 3x/day (6am/noon/6pm) checking HubSpot for new leads, enriching, scoring, posting lead cards to Slack with approve/reject buttons. Outbound: 6,038 leads loaded across 5 active campaigns; AI manages sequencing, personalization, timing. Reply tracking every 4 hours; account rollup 7x/day on weekdays.
+- **Content factory (Flash):** X trend scanner runs 2x/day on 10 key accounts, scoring posts 0-100 for impressions/engagement/bookmarks/topic relevance. YouTube competitive analysis 2x/week across 10 channels with view-velocity outlier detection. Podcast transcripts auto-broken into content atoms (1 episode → 6-8 platform-specific drafts). Articles avg 120K views; short posts 19K -- 6x multiplier means Flash prioritizes long-form.
+- **Recruiting (Cyborg):** sources overnight while user sleeps. Last run: 50 candidates across 4 roles in 8 hours. 84% in target geography, 76% scored HIGH on experience+role+location match. Preference model learns from approve/reject patterns -- no manual brief updates.
+- **AutoResearch + AutoGrowth:** Karpathy's autoresearch pattern runs continuously across all data; surfaced a 3x close-rate correlation tied to specific keywords prospects used in first 5 minutes of calls. AutoGrowth A/B tests subject lines/angles/send times -- question-form subjects outperformed statements 2.3x after 4 weeks; insight applied automatically.
+- **Self-healing cron doctor:** twice-daily check on all 48 jobs; reads error logs, diagnoses, fixes what it can. Real test: "recovers faster than you notice." 2 of 3 failures auto-repaired before user checks.
+- **Cost economics:** moving from cloud APIs to local inference cut costs ~70%; hardware pays for itself in weeks.
+- **Six design principles:** LLMs do judgment, scripts do determinism. Never instruct twice (second occurrence becomes a skill or cron). Security gates on every external-content-handling script (inbound + outbound). Self-healing over monitoring. Flat files over databases. The system compounds -- months 1-2 are pain, month 3 the flywheel kicks in.
+- **Productization angle:** internal implementation becomes the product. Agencies sell the intelligence layer that makes services 10x more effective; the services come with it. Months of compounded data + learnings = differentiation that SaaS can't replicate.
+- (see [agent-design.md](agent-design.md#five-agent-fleet--single-brain-pattern-dorsey-world-model) for the architecture view)
+
+*Source: 2026-04-11-ericosiu-httpstcop3alvdc9dc.md*
+
+### X API via OpenClaw (Elon Musk announcement)
+- @elonmusk: "You can access X API via OpenClaw. We're trying to make it affordable without giving away the shop."
+- Means OpenClaw and other agentic platforms can now build apps on top of X (read tweets, manage timelines, post, monitor mentions)
+- Previously the X API access was prohibitively expensive for indie/agent use; OpenClaw integration changes the economics
+- Relevant for any agent-driven Twitter marketing or social listening pattern (see [community-insights.md > Agent-Driven Marketing & Sales](community-insights.md#agent-driven-marketing--sales) for adjacent tactics)
+
+*Source: 2026-04-18-elonmusk-you-can-access-api-via-openclaw-were-trying-to-make-it-affor.md*
+
+### In-the-Loop / On-the-Loop / Off-the-Loop -- The Autonomy Spectrum (Andrew Orobator Pt 10)
+The conceptual progression from manual prompting to true autonomous agents. Each level requires more infrastructure but unlocks different work.
+
+- **In the loop:** human prompts every step. Solo vibe coding. Right for ambiguous feature work where judgment is the value.
+- **On the loop:** human orchestrates and reviews. Conductor pattern with multiple worktrees (see Andrew Pt 9). Human kicks off each agent, reviews each PR.
+- **Off the loop:** human sets constraints + reviews outcomes. Cron, webhook, or event triggers. Background agents run on schedule.
+- **The transition rule:** "If engineers still manually kick off work with a prompt, we've automated the work, not the workflow."
+- **What makes off-the-loop viable:** maintenance tasks aren't ambiguous (they're deterministic, verifiable, soul-crushing). Flag cleanup is the first domino because the pain is universal, the correctness is checkable, and the win is measurable.
+- (see [Flag Lifecycle Agent](#flag-lifecycle-agent--the-self-driving-codebase-andrew-orobator-pt-10) below for the production case study; see [agent-design.md > The Multi-Agent Spectrum](agent-design.md#the-multi-agent-spectrum-subagents-vs-independent-sessions-vs-serial-andrew-orobator-pt-9) for the on-the-loop predecessor pattern)
+
+*Source: Andrew-Vibe-Coding/Vibe Engineering From Random Code to Deterministic Systems (Part 10).md*
+
+### Flag Lifecycle Agent -- The Self-Driving Codebase (Andrew Orobator Pt 10)
+Production-grade case study of off-the-loop autonomy. Reddit hackathon, Phase 1 = one engineer + one day cleaned up 7 stale feature flags end-to-end on Reddit's Android codebase.
+
+**The problem space:**
+- Reddit's Android codebase had **571 stale flags**, 91 of them >12 months old. Backlog growing faster than any cleanup ritual could drain it.
+- "We should clean this up" never happens at scale. Engineers hate it. Cleanup sprints don't stick. War rooms only delete what gets political capital burned on them.
+- Stripe's Developer Coefficient pegs maintenance + tech debt drag at ~17 hrs/week per dev. McKinsey: 20-40% of tech estate value. Knight Capital lost $440M in 45 minutes when a repurposed flag reactivated dormant code on deploy.
+
+**The numbers from Phase 1:**
+- 7 cleanups (5 kill switches + 1 feature flag + 1 four-variant experiment)
+- **7/7 PRs passed CI; 7/7 kept the correct code path; 0 adjacent flags touched**
+- Total LLM cost: **$8.79 across all runs ($1.26 per cleanup)**
+- Avg runtime: ~14 minutes per cleanup
+- 1 intelligent refusal -- the agent detected a scope contradiction and stopped rather than produce code that would break a test file it wasn't allowed to modify. Cost $0.70, saved a broken PR.
+
+**Architecture (Society-of-Mind layers):**
+- **Orchestration:** discovery (`stale_flags.py`) → experiment-platform validation → complexity scoring → spec generation → PR transplant
+- **Specialists:** Planner → Coder → Reviewer 3-agent loop inside cloud sandbox
+- **Platform:** sandboxed execution, git, GitHub, experiment data MCP
+
+**Decision discipline (evidence-backed not assumption-backed):**
+- Before submitting cleanup, orchestrator queries variant sizes (variant at 1.0 = winner = code path to keep)
+- Pulls metric readouts into the PR body so reviewers see experiment impact
+- Frozen experiment / failed health check / partial rollout → **aborts the cleanup**
+- Agent does NOT invent cleanup logic -- it executes a battle-tested skill that encodes 2 years of post-mortems from experimentation + Android teams. The skill is the runbook; the agent is the runner.
+
+**Economics at scale:**
+- $1.26/cleanup × 2-PR/day cap × weekdays = ~520 flags/year for <$700 LLM spend
+- That's >90% of Reddit's Android backlog cleared in 12 months for less than a team lunch
+- Human alternative: 30 min × $100/hr fully loaded = $50/flag → $26,000 + 260 engineer-hours = 6.5 weeks of full-time work
+- **The actual comparison isn't $700 vs $26,000 -- it's $700 vs *nothing*.** The work was never going to get done manually.
+
+**Kill criteria (the autonomy spec):**
+- 2 reverts in 7 days → pause
+- 3 consecutive refusals → pause
+- 20% CI failure rate → pause
+- 5 unreviewed PRs in queue → pause
+- Single run >$5 → pause
+- "You don't deploy an autonomous agent without deciding, in advance, what 'too dangerous to continue' looks like."
+
+**Generalized pattern -- the formula under all autonomous fleets:**
+**Discover → Assess risk → Execute → Verify → Human review.**
+
+- Verification gate per work type:
+  - Backend/logic: compile + unit + integration tests
+  - UI code: compile + unit + screenshot tests
+  - UI feature: screenshot tests + video review by second agent
+  - Dependency bump: full test suite + perf benchmarks
+  - Documentation: linter + broken-link check + example code compiles
+  - Refactor/dead code: compile + full test suite + behavior diff
+- **The limiting factor is verification quality, not LLM capability.** If you can verify it, you can automate it. Tests rot too, but a broken gate fails *loudly* while a broken prompt fails *silently and ships*.
+
+**Honest pushback (from the internal Slack thread that sharpened the thesis):**
+- **Attestation:** human trigger = human merges. Cron trigger = CODEOWNERS owns it. Same rules as any other change.
+- **DoS-ing reviewers:** agents generate faster than humans read. Rate limit is a kill criterion, not a nice-to-have.
+- **Repeat regressions:** agents make the same mistake twice. Kill switches + verification gates + post-mortem-encoded skills exist for this.
+- **Plan review > code review:** for autonomous agents, the **skill is the pre-approved plan** -- reviewed once when written, applied every run.
+- **Legitimacy at volume:** "review required" quietly collapses when the queue doubles. The rate limit isn't a throughput knob; it's a **trust budget**.
+
+**Adjacent fleet candidates (the same pattern across domains):**
+- Dependency bumps
+- Incident first-response
+- Skill maintenance (closes the loop -- skills accumulate entropy too)
+- Dead code cleanup
+- Lint migrations
+- A11y audits
+
+**Industry signal:** Cognition's Devin runs 14 of these in production teams. Anthropic Managed Agents and Cursor Automations are bets on the same shape. Steve Yegge's [Gastown](https://steve-yegge.medium.com/welcome-to-gas-town-4f25ee16dd04) -- fleets of 20+ agents under a "mayor" -- is already in production at Fortune 100 companies.
+
+**The mindset shift:** "We should be **harness engineering** -- building the system that writes the code, not writing the code. Senior engineers should be designing the constraints, the gates, the skills, the verification surface. Deterministic chore work runs on a cron while we sleep."
+
+*Source: Andrew-Vibe-Coding/Vibe Engineering From Random Code to Deterministic Systems (Part 10).md*
+
+### Open Swarm: One-Canvas Agent Army
+- @OpenSwarm_ launched: "One canvas, an army of AI agents. Be the boss."
+- Visual canvas-based orchestration of multiple AI agents -- the user is the orchestrator/conductor, agents execute in parallel
+- Adjacent to Five-Agent Fleet pattern but UI-first vs file-first; tradeoff is operational visibility (canvas is legible) vs persistence (file-based scales better)
+
+*Source: 2026-04-22-OpenSwarm-introducing-open-swarm-one-canvas-an-army-of-ai-agents-be-th.md*
+
+### Hermes Agent Army: 5 Pillars + VPS Setup + Multi-Agent Strategy (Nate Herk)
+- **Open-source agent runtime** (Nous Research, MIT, 140K stars). VPS, Mac Mini, laptop, Docker, even Android via Termux. 91 skills ship out of the box, 520+ in community hub (16 official Anthropic). Connects to Telegram/Discord/Slack/WhatsApp/iMessage.
+- **Positioning vs. Claude Code:** Claude Code is the desk-bound daily driver for knowledge/coding work. Hermes is the on-the-go, voice-first, scheduled-automation layer that lives in your pocket. Same brain (skills + memory + version control), different interface. They share a GitHub repo of business context, skills, memory — any agent (Claude Code, Hermes, OpenClaw, Codex) can plug in.
+- **The Five Pillars mental model:**
+  1. **Memory** — `user.md` (who you are, style, preferences) + `memory.md` (projects, environment, business context) load at session start. Auto-extracts facts as you work. Use session search (SQLite) for old conversations. Never put secrets or temporary task status in memory.
+  2. **Skills** — procedural memory as reusable playbooks. Stored as `skill.md` with YAML frontmatter declaring triggers (progressive disclosure — body loads only on invocation). Hermes analyzes conversations and offers to turn repeated patterns into skills.
+  3. **Soul** — `soul.md` shapes personality. Six Hermes agents can each have their own vibe (concise, sarcastic, blunt, formal). Evolves with feedback.
+  4. **Crons** — natural-language scheduled jobs. Each cron runs in a fresh isolated session, results back to chat. Flags: `CONTEXTFROM` (chain output), `WORKDIR`, `NOAGENT` (no agent reasoning loop). Cron sessions can't recursively create crons — prompt must be self-contained. Time-bounded crons work like `/loop`.
+  5. **Self-Improving Loop** — do work → feedback → save to memory → repeat steps become skills → search past sessions when context matters. Caveat: automatic doesn't mean magic. Correct on the spot, ask it to save things, let it create skills after complex work.
+- **Manage Hermes from Claude Code:** keep a `vps-agents` project where every agent gets a folder containing IP, admin creds, API key paths, container setup, Docker info, security/integration notes. "When something breaks at 11pm, I don't dig through Hostinger — I open Claude Code, point at the project, it fixes the agent." Build the assistant for the assistant.
+- **API key hygiene:** never paste keys in chat. SSH in, run `hermes config set GITHUB_TOKEN <token>` so it lands in container's `/opt/data/.env`. Named keys per agent, scoped tight (least privilege). Marketing agent doesn't need read access to QuickBooks. Finance agent does. Lock down VPS via firewall, restrict to your IP, block unused ports — build a skill that runs a nightly security audit. Hermes can attack its own setup and report findings.
+- **Spin-up-second-agent decision rule:** new agent if it needs its own credentials/secrets/tools, its own long-term memory, OR is ongoing repeated work for a separate role. Otherwise extend main agent. Bad pattern: one mega-agent with every key + every skill + every cron (high confusion, high blast radius). Good pattern: main personal + split-off agents in own containers with scoped keys and uncommitted .env.
+- **The Claude Code/Hermes split lesson:** "watch the agent while it's working. If you wanted it to invoke a skill and it didn't, that's your signal to tell it 'update the YAML front matter so this skill triggers when I say X.'"
+- (see [skills.md > Claude Skills Full Playbook](skills.md#claude-skills-full-playbook-saved-prompt-vs-trained-employee) for the SKILL.md authoring patterns Hermes uses; see [memory-persistence.md](memory-persistence.md) for the user.md/memory.md two-file convention)
+
+*Source: 2026-05-10-nateherk-httpstcopqx1ron7vm.md*
+
 ---
 
 ## Security Rules (Non-Negotiable)
@@ -890,7 +1314,7 @@ A practitioner's security checklist distilled from Cisco security background.
 
 (see [failure-patterns.md](failure-patterns.md) for prompt injection patterns)
 
-*Source: Twitter Bookmarks/openclaw security 101 13 steps to lock down your AI agent.md*
+*Source: Twitter-Bookmarks/openclaw security 101 13 steps to lock down your AI agent.md*
 
 ### Real-World OpenClaw Security Audit Findings
 
@@ -905,7 +1329,7 @@ A practitioner's security checklist distilled from Cisco security background.
 - Corroborates the security hardening checklist in the Security Rules section above with real-world evidence that users consistently skip these steps
 - Author published a full OpenClaw security guide (linked from thread)
 
-*Source: Twitter Bookmarks/Thread by @johann_sath.md*
+*Source: Twitter-Bookmarks/Thread by @johann_sath.md*
 
 ### Multi-Layer Cron Defense-in-Depth
 
@@ -944,7 +1368,7 @@ Lightning Labs released open-source tools (lightning-agent-tools) that give agen
 - **Agent commerce loop:** One agent hosts a paid service (via Aperture reverse proxy), another agent consumes it (via lnget CLI), Lightning settles payments transparently. Both sides configurable via natural language prompts.
 - **Spending caps:** `--max-cost` per-request and macaroon-level budget caps prevent runaway spending by autonomous agents.
 
-This represents a production-ready pattern for the "agents paying agents" use case referenced in multiple OpenClaw community discussions (see [community-insights.md](community-insights.md) for full technical details, also Claw Cash and Start With Bitcoin tool entries).
+This represents a production-ready pattern for the "agents paying agents" use case referenced in multiple OpenClaw community discussions (see [bitcoin-ai.md](bitcoin-ai.md) for full technical details, also Claw Cash and Start With Bitcoin entries).
 
 ### MiniClaw Philosophy: Single Access Point Architecture
 
@@ -957,7 +1381,7 @@ A security-first alternative to OpenClaw's multi-channel model, advocated by the
 - **Everything OpenClaw does can be replicated** with cron-job.org, Playwright, CLI tools, and skills/hooks -- without the multi-channel attack surface
 - **Account partitioning:** Give agents their own accounts (Telegram, X, email, GitHub). Never share personal accounts -- "if your agent has access to the same accounts you do, a compromised agent IS you"
 
-(see [failure-patterns.md](failure-patterns.md#agent-security-threat-model) for the specific attack categories)
+(see [failure-patterns.md](failure-patterns.md#agent-security-threat-model-6-attack-classes) for the specific attack categories)
 
 ### The Winning Architecture: 6 Requirements for Secure Recursive Agents
 
@@ -972,6 +1396,16 @@ A prediction framework for what the "winner" in the recursive agent space will l
 - **OWASP least agency principle:** Only grant agents the minimum autonomy required for safe, bounded tasks -- the agent equivalent of least privilege
 
 *Sources: everything-claude-code/the-openclaw-guide.md, everything-claude-code/the-security-guide.md*
+
+### Nunchuk CLI: Bounded-Authority Bitcoin Wallets for AI Agents
+- Nunchuk released a CLI tool to create shared Bitcoin wallets between humans and AI agents with spending budgets and human final-say
+- **Bounded authority pattern:** agent gets its own key in a multisig wallet with a spending limit -- agent can initiate transactions up to the budget, human retains veto/co-sign authority
+- Operationalizes the "least privilege for agents" principle: agents should never get full key access. The wallet IS the permission boundary
+- Complements existing agent wallet patterns: LNCURL (Lightning wallets with survival mechanics), remote signer architecture (key separation), macaroon budget caps
+
+(see [LNCURL: Instant Lightning Wallets for Agents](#lncurl-instant-lightning-wallets-for-agents) for the Lightning equivalent; see [bitcoin-ai.md](bitcoin-ai.md) for full Bitcoin-AI integration patterns)
+
+*Source: 2026-04-08-nunchuk_io-ai-agents-shouldnt-get-the-full-key-to-your-kingdom-today-we.md*
 
 ---
 
@@ -994,7 +1428,7 @@ The setup included a three-layer memory system, security guardrails, and daily w
 - Demonstrates current ceiling of autonomous agent real-world task execution -- not just code generation but multi-domain business tasks
 - Relevant to the brain/muscles pattern: this is a single generalist agent rather than specialized sub-agents (see [Model Routing: Brain/Muscles with Specific Model Picks](#model-routing-brainmuscles-with-specific-model-picks))
 
-*Source: Twitter Bookmarks/Thread by @thegarrettscott.md*
+*Source: Twitter-Bookmarks/Thread by @thegarrettscott.md*
 
 ### Cold Outreach Automation at Scale
 
@@ -1074,4 +1508,5 @@ Curated from all sources -- what people actually use OpenClaw for:
 - Per-employee personal agents + one shared company agent
 - Company agent with access to shared docs, goals, and financial data
 - Inter-agent communication (John's agent queries Michael's agent)
-- Role-specialized agents (marketing agent, coding agent, recruiting agent)
+
+

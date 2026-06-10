@@ -59,6 +59,17 @@ Implementation-level verification patterns extending the four-level hierarchy ab
 
 *Sources: get-shit-done/templates/VALIDATION.md, get-shit-done/templates/UAT.md, get-shit-done/templates/verification-report.md*
 
+### Mandatory Completion Verification via Subagent
+
+- Hard enforcement: "If you haven't run the verification tool in this message, you cannot claim the change works"
+- Verification tools that take 1-30 minutes: spawn in a subagent; main thread must never idle while it runs -- always continue working on other tasks
+- Spawn one subagent per feature concurrently when testing multiple features
+- Re-run is always a new subagent spawn -- never block the main thread on re-verification
+- Write test instructions adversarially: think like a user trying to break the feature, not confirming it renders
+- Completion checklist at end of skill (peripheral position) -- the last thing read before acting
+- (see [testing-verification.md](testing-verification.md#core-principle-verify-artifacts-not-self-reports) for the foundational verification principle)
+*Source: expect/.agents/skills/expect/SKILL.md*
+
 ---
 
 ## The Plausible Echo Problem
@@ -207,6 +218,15 @@ Validation gate that prevents building solutions to already-solved problems:
 
 *Source: awesome-openclaw-usecases/usecases/pre-build-idea-validator.md*
 
+### Testing Addressed Gate: Deliberation at the Point of Action
+
+- "All tests pass" is vacuously true when no tests exist -- the gate must be: "testing addressed -- new/changed behavior has coverage OR explicit justification for why tests are not needed"
+- Deliberate omission is a first-class valid outcome -- the goal is intentional decisions, not forced ceremony
+- Three-layer approach: plan-time annotation (annotate why a unit has no test scenarios) → execution-time deliberation ("did this task change behavior? if yes, were tests written?") → review-time detection (flag behavioral diffs with zero test changes)
+- "Did you address testing for this task?" is far more targeted than "tests pass"
+- Contract tests that verify skills/agents contain required language are a concrete pattern for enforcing workflow correctness
+*Source: compound-engineering-plugin/docs/brainstorms/2026-03-29-testing-addressed-gate-requirements.md*
+
 ---
 
 ## Knowledge Layer Evaluation Framework
@@ -262,6 +282,15 @@ One happy-path E2E plus one edge case per feature. Unit tests are the floor, not
 
 *Source: skills/skills/webapp-testing/SKILL.md*
 
+### Plan Review with Fresh-Context Subagent
+
+- Stress-test plans using a subagent with fresh context to avoid planner bias -- if you helped write the plan, you carry bias that makes gap-finding harder; a fresh reviewer sees it cold
+- Six review dimensions: pre-mortem ("it failed 3 months later -- why?"), completeness, feasibility, best-practice alignment, sequencing, specificity
+- Red/Yellow/Green classification: Red = critical, will likely cause failure; Yellow = creates risk but can proceed; Green = nice-to-have
+- Expert role is inferred from plan content and announced so the user can override
+- Web research depth levels: quick (0 searches), standard (2), deep (3-4); distilled into 3-5 relevant principles
+*Source: claude-code-synthesis/commands/review-plan.md*
+
 ---
 
 ## Automated Verification Hooks
@@ -311,7 +340,7 @@ Practices for shipping AI-augmented code safely:
 - **Rollback protocol:** Keep full audit logs via git (every Claude change is a commit). Maintain a state file (e.g., `claude-progress.txt`) tracking what each agent decided. Use `git revert` for agent commits when drift occurs
 - **Regulated environments:** Require Claude to output explicit reasoning ("Explain why this change is needed") and log justifications. Freeze model versions (e.g., "Use Sonnet 4.5 only"). Rerun privacy/hallucination checks on outputs
 - **CI integration template:** PR-triggered Claude review -> apply patch -> run tests -> halt on failure -> audit for security issues. Quality gates auto-fail if Claude's code does not meet style or logic standards
-- Extends the Harness Engineering pattern (see [community-insights.md](community-insights.md)) with regulated-environment and trust-boundary guidance
+- Extends the Harness Engineering pattern (see [workflow-patterns.md](workflow-patterns.md#harness-engineering-automated-code-write-and-review-loop)) with regulated-environment and trust-boundary guidance
 
 *Source: deep-research-report.md*
 
@@ -325,6 +354,37 @@ Practices for shipping AI-augmented code safely:
 
 *Source: Things I wish someone told me.md*
 
+### Tiered Skill Testing: Free/Cheap/Expensive Separation
+
+A three-tier testing architecture for Claude Code skills that separates cost-free static checks from expensive LLM/E2E evaluations.
+
+**Tier 1 -- Static Validation (free, <1s):** Validate skill file structure, required fields, format compliance. Run on every change -- no API cost.
+
+**Tier 2 -- E2E via `claude -p` (~$3.85/run):** Full end-to-end skill execution through real Claude sessions. Stream progress in real-time with `--output-format stream-json --verbose`. Run on demand or pre-merge, not on every commit. Ground truth: fixture-based expected outputs stored in `test/fixtures/`.
+
+**Tier 3 -- LLM-as-Judge (~$0.15/run):** LLM evaluates quality of skill output (not just correctness). Cheaper than E2E but still paid -- run selectively. Useful for subjective output quality (writing style, analysis depth).
+
+**Eval persistence and comparison:** Persist all eval results; compare against the previous run (not a fixed baseline) to catch regressions introduced by the last change. `eval:summary` aggregates stats across all runs for trend analysis.
+
+**SKILL.md template generation:** SKILL.md files are generated from `.tmpl` templates, never edited directly. Edit the template, run `gen:skill-docs`, commit both. Prevents drift between implementation and documentation.
+
+*Source: gstack/CLAUDE.md*
+
+### Expect: Browser-Based Agent Testing with Video Evidence
+
+- Expect lets AI agents test code in a real browser and records a video of every bug found; the video is the verification artifact
+- Workflow: write test spec → agent executes in browser → watch video of what went wrong → fix → re-run until passing; the video eliminates the "works on my machine" problem for UI bugs
+- Available as CLI (`npx -y expect-cli`) or Claude Code skill; designed to slot into existing agent loops as the verification step
+*Source: 2026-03-25-aidenybai-introducing-expect-let-agents-test-your-code-in-a-real-brows.md*
+
+### Hook-Driven Task Completion
+
+- Hooks replace manual status updates: `Test Success Task Completer` detects passing tests and prompts for completion; `Code Change Task Tracker` monitors file saves; `Task Dependency Auto-Progression` auto-starts dependent tasks
+- AI assistant rule: implement first, save frequently, let hooks detect completion from observable evidence -- manual status overrides reserved for documentation-only tasks and emergencies
+- This is evidence-based task completion: tasks are marked done only when observable criteria (passing tests, file saves) are met, not when the agent self-reports
+- (see [testing-verification.md](testing-verification.md#core-principle-verify-artifacts-not-self-reports) for the verification principle this implements)
+*Source: claude-task-master/.kiro/steering/taskmaster_hooks_workflow.md*
+
 ---
 
 ## Eval-Driven Development (EDD)
@@ -336,7 +396,7 @@ A formal evaluation framework that treats evals as "the unit tests of AI develop
 1. **Define** -- Write evals BEFORE coding. Forces clear thinking about success criteria. Evals are first-class artifacts versioned with code
 2. **Implement** -- Build to pass the defined evals
 3. **Evaluate** -- Run checks against the implementation
-4. **Report** -- Generate pass@k metrics and status summaries (see [Binary Pass/Fail Criteria](#eval-metrics-passkpass-k) for the reliability metrics)
+4. **Report** -- Generate pass@k metrics and status summaries (see [Eval Metrics: pass@k vs pass^k](#eval-metrics-passk-vs-passk) for the reliability metrics)
 
 ### Eval Types
 
@@ -368,6 +428,21 @@ Prefer code-based graders when possible -- deterministic beats probabilistic. Re
 (see [workflow-patterns.md](workflow-patterns.md) for verification gate patterns)
 
 *Source: everything-claude-code/skills/eval-harness/SKILL.md*
+
+### Evals-Before-Specs Pattern
+
+- Define how you'll evaluate success BEFORE writing the spec -- clear evaluation criteria constrain the solution space and produce better specs
+- Formal progression: evals → spec → plan → implement → verify against evals
+- Artifact frontmatter for scripts: include purpose (one line), inputs (file paths or data sources), outputs (file paths produced), last_run (date) -- makes pipeline dependencies explicit and debuggable
+*Source: claude-code-synthesis/CLAUDE.md*
+
+### Evaluation and Tracing Integration for RAG
+
+- Production RAG systems should have both offline evaluation (quality) and online tracing (behavior) -- RAGAS for evaluation, Langfuse for tracing
+- API returns retrieved contexts alongside query results specifically to support context precision metrics -- design for evaluability from the start
+- Test marker system: `offline`, `integration`, `requires_db`, `requires_api` -- default run excludes integration tests; opt-in flag for when external services are available
+- `--keep-artifacts` flag on tests preserves temp files for debugging failed runs -- useful pattern for any test suite that produces intermediate artifacts
+*Source: LightRAG/README.md, LightRAG/CLAUDE.md*
 
 ---
 
@@ -437,6 +512,33 @@ Production telemetry data reveals verification patterns and coaching opportuniti
 
 *Sources: claude-code-monitoring-guide/claude_code_roi_full.md, sample-report-output.md*
 
+### Autoresearch: Automated Skill Improvement via Scoring Loops
+
+- Agent tests a skill, scores output against a 3-6 item yes/no checklist, makes one small change, keeps if score improves, reverts if not, repeats until 95%+ three times in a row
+- Checklist design is the only human input required; more than 6 items causes the skill to game the checklist
+- The changelog from autoresearch is the most valuable artifact: a complete record of what works and what doesn't, usable by future models to pick up exactly where this one left off
+- Method generalizes beyond skills to any repeated prompt that can be scored objectively
+(see [skills.md](skills.md) for the full autoresearch workflow)
+*Source: 2026-03-17-itsolelehmann-httpstcokgo8wnoidv.md*
+
+### Three Gulfs Framework: Why Automated Evals Fail Without Manual Comprehension
+
+- Three Gulfs of AI evals: Gulf of Comprehension (gap between what you think your system does and what it actually does), Gulf of Specification (gap between what you want to measure and what your judges measure), Gulf of Generalization (gap between test performance and real-world performance)
+- They must be closed in order -- you cannot skip Comprehension; machine-generated test inputs + machine-generated judges without manually reading any outputs = optimizing against a fantasy
+- Error analysis protocol: (1) open coding -- read every output, write freeform failure notes; (2) axial coding -- group into binary failure taxonomy; (3) write judges grounded in the taxonomy; (4) validate judges on 15-20 manually scored outputs before running autonomously
+- "If you are not willing to look at some data manually on a regular cadence, you are wasting your time with evals"
+- autoresearch/eval optimization loops are powerful ONLY after the first two gulfs are closed; run the optimization loop last, not first
+*Source: 2026-03-21-nurijanian-httpstcothbioerfj7.md*
+
+### CLI Agent-Readiness as a Conditional Review Persona
+
+- Agent-readiness issues (prose-only output, missing `--json`, interactive prompts without bypass, unbounded list output) are a distinct code quality concern that generic review misses
+- Conditional persona pattern: activate based on diff content (CLI command definitions, argument parsing), not always-on
+- Severity ceiling for agent-readiness findings is P1 -- they don't crash software but make it harder for agents to use
+- All findings are advisory with human owner -- CLI design decisions are not auto-fixable
+- Persona self-scopes after dispatch: identifies framework, detects changed commands, evaluates against principles
+*Source: compound-engineering-plugin/docs/brainstorms/2026-03-30-cli-readiness-review-persona-requirements.md*
+
 ---
 
 ## TDD Methodology: Decision Heuristic and Execution Protocol
@@ -505,5 +607,3 @@ The last line is the key: the trace links to the skill it updated. *Why* lives i
 - Multiple viable alternatives existed and you need to record why you chose this one
 - A production incident revealed a systemic issue
 - Someone will ask "why did we do it this way?" in six months
-
-

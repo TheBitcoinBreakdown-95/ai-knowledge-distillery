@@ -25,7 +25,7 @@ TABLE_NAME = "kb_chunks"
 def get_kb_dir(override: str | None = None) -> Path:
     if override:
         return Path(override)
-    return Path(__file__).parent.parent / "Knowledge Distillery"
+    return Path(__file__).parent.parent / "Knowledge-Distillery"
 
 
 def get_db_path(kb_dir: Path) -> Path:
@@ -92,7 +92,7 @@ def build_index(kb_dir: Path, chunks: list[dict]) -> None:
     chunks = embed_chunks(chunks)
 
     # Build table
-    table = db.create_table(TABLE_NAME, data=chunks)
+    table = db.create_table(TABLE_NAME, data=chunks, mode="overwrite")
     print(f"Created table '{TABLE_NAME}' with {len(chunks)} rows")
 
     # Create FTS index on text column for BM25 search

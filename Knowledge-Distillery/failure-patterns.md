@@ -8,7 +8,7 @@ The act of naming a failure *during* the work -- not after -- is what turns a su
 
 This is not reflection. Reflection happens after. This happens during -- you are building and watching yourself build at the same time, and the watching changes the building. The process is a product that evolves through use, not through design.
 
-The fix protocol is always the same: **Catch -> Name -> Update Skill -> Prevent Recurrence** (see [skills.md#the-skill-lifecycle-mistake-lesson-skill-prevention](skills.md#the-skill-lifecycle-mistake-lesson-skill-prevention)).
+The fix protocol is always the same: **Catch -> Name -> Update Skill -> Prevent Recurrence** (see [skills.md#the-skill-lifecycle](skills.md#the-skill-lifecycle-mistake---lesson---skill---prevention)).
 
 ---
 
@@ -243,7 +243,7 @@ A practitioner's documented experience with multi-step autonomous agent delegati
 
 (see [autonomous-agents.md](autonomous-agents.md) for cost optimization and architecture that mitigates these issues)
 
-*Source: Twitter Bookmarks/2026-03-02-bradmillscan-trying-to-get-openclaw-agents.md*
+*Source: Twitter-Bookmarks/2026-03-02-bradmillscan-trying-to-get-openclaw-agents.md*
 
 ### Debunked and Outdated Practices
 
@@ -279,7 +279,7 @@ From enterprise agent deployments ($3M ARR):
 
 Complements [Premature Completion](#2-premature-completion) -- both are about agents that stop short of forcing resolution.
 
-*Source: Twitter Bookmarks/2026-01-11-vasuman-100x-a-business-with-ai.md*
+*Source: Twitter-Bookmarks/2026-01-11-vasuman-100x-a-business-with-ai.md*
 
 ### Concurrent File Editing Race Condition
 
@@ -294,6 +294,117 @@ Critical failure mode when multiple sub-agents edit shared state files:
 (see [agent-design.md](agent-design.md#subagents-in-claude-code) for sub-agent architecture)
 
 *Source: awesome-openclaw-usecases/usecases/overnight-mini-app-builder.md*
+
+### Operational Anti-Patterns: 28 Mistakes Running OpenClaw at Scale
+
+- **Impulse importing anti-pattern:** importing other people's configs/skills/prompts "breaks things that were already working multiple times over" -- context poisoning with good intentions; new config conflicts with existing rules, imported skills collide, governance frameworks rewrite routing assumptions; fix: audit what exists before bolting on anything new
+- **Rules as docs vs rules as scripts:** documentation-only rules succeed ~48% of the time; rules backed by enforcement scripts succeed ~100%; every repeated failure should become a script, not another line in a doc
+- **Write first, speak second:** agent must persist state to disk BEFORE reporting task completion; if completion state isn't on disk yet, the next session has no record -- "done" keeps reappearing as not-done
+- **Evidence gate for "done" claims:** require repo + branch + commit hash + what files changed + verification proof; "your agent saying done is completely worthless unless it comes with receipts"
+- **Context gate before every response:** force agent to load corrections/decisions/recent memory before responding -- prevents cold answers that re-discover already-solved problems
+- **Three-layer health scoring:** top (letter grade), middle (category scores), bottom (hard gates that cannot be averaged away); integrity as multiplier -- if integrity checks fail, whole score is ×0.33 regardless of other metrics
+- **Parallel agent file ownership:** explicitly define which agent owns which files BEFORE parallelizing -- without ownership, two agents edit the same files simultaneously, producing conflicting changes
+*Source: 2026-03-12-kloss_xyz-httpstco9ahrbk39g2.md*
+
+### Agentic Anti-Patterns: Sycophancy, Context Bloat, and Loop Termination
+
+- Sycophancy design limitation: agents find bugs even if they have to engineer them -- use neutral prompts ("search through the database and report findings") rather than biased ones ("find me a bug")
+- Exploit sycophancy deliberately: bug-finder agent with scoring produces a superset of bugs; adversarial agent tries to disprove them; referee agent scores both -- produces nearly flawless bug detection
+- Context bloat failure: too many plugins, memory systems, and skills cause the agent to be trying to help with one task while reading rules about sub-process management from 71 sessions ago
+- Agents know how to start but not stop: explicit task completion criteria (tests, screenshots, verifications) is the only reliable fix for premature or late termination
+*Source: 2026-03-03-systematicls-httpstcowbakpai5vl.md*
+
+### Session File Bloat: Invisible Performance Degradation
+
+- Anti-pattern: every cron job output stored in session files; months of accumulated .jsonl files load into context on every message, causing up to 95% response time slowdown
+- This degradation is invisible until severe -- periodic session file cleanup must be a scheduled maintenance task, not reactive
+- General pattern: any long-running autonomous agent with persistent session storage will accumulate stale context unless it has an explicit cleanup/pruning mechanism
+*Source: 2026-03-19-sharbel-ran-this-on-mine-this-morning-my-openclaw-had-been-getting-s.md*
+
+### Subagent Failure Patterns from Real Sessions
+
+- Configuration change verification gap: subagent got status 200, reported success -- but response contained the wrong model. Test verified the operation succeeded, not that the outcome reflected intended configuration. Gate function: identify what should be DIFFERENT after the change, locate where that difference is observable, run a command that shows it, then claim success
+- Background process accumulation: multiple subagents each started background servers; later test hit a stale server with wrong config. Fix: include explicit port-freeing and cleanup instructions in every E2E subagent prompt -- subagents are stateless and don't know what previous subagents started
+- Mock-interface drift: code called `adapter.cleanup()`, mock had `cleanup()`, interface defined `close()` -- tests passed, runtime crashed. Fix: derive mocks from the interface definition, not from what the code calls
+- Skill activation failure: relevant skills existed but neither human nor subagents read them. Fix: explicitly require subagents to read relevant skills before writing tests
+- Lean context produces better results: providing only task description, file path, pattern reference, and verify command (instead of full plan file) improved focus and first-attempt success rate
+*Source: superpowers/docs/plans/2025-11-28-skills-improvements-from-user-feedback.md*
+
+### Effect-TS Error Discipline
+
+- `Effect.mapError` is almost never correct: it blindly maps ALL errors to a new type, turning schema errors and platform errors into domain errors
+- Banned patterns: `catchAll`, `mapError`, `Effect.option`, `Effect.ignore()`, `orElseSucceed(() => undefined)`
+- Infrastructure errors become defects (`Effect.die`), not recoverable errors -- recovering from them hides bugs
+- Missing data is modeled as an error, not as empty/default values -- let consumers decide how to handle it via `catchTag`
+- Error naming: `{Entity}{Reason}Error` -- one error per failure mode; never collapse to a generic `NotFoundError`
+- Principle: fail loud, not silent; catch-and-continue on critical paths is banned
+*Source: expect/AGENTS.md*
+
+### Anti-Pattern Czar: Systematic Error Handling Audit
+
+- Automated scanner detects error handling anti-patterns (CRITICAL, HIGH, MEDIUM, APPROVED_OVERRIDE); command works through issues methodically one batch at a time, re-running after each batch
+- Four fix options per catch block: add logging, add `[APPROVED OVERRIDE]`, remove the try-catch entirely, or add specific error type checking
+- APPROVED_OVERRIDE requires all four: error is expected AND frequent, logging creates too much noise, explicit recovery logic exists, reason is specific and technical
+- Critical path rule: on critical path files, NEVER approve overrides without exceptional justification -- errors must be visible (logged) or fatal (thrown)
+- Principle: fail loud, not silent -- silent catch-and-continue on critical paths is banned
+*Source: claude-mem/.claude/commands/anti-pattern-czar.md*
+
+### Backward Compatibility as First-Class API Constraint
+
+- Multiple patterns encode backward compat as a constraint: keep old names as deprecated aliases when renaming, use `_: KW_ONLY` before optional dataclass fields so adding parameters can't break positional callers, promote shared settings to base classes with automatic mapping from legacy fields
+- Fix type errors properly instead of `# type: ignore` -- suppressions mask real errors and erode confidence in the type system; when suppressions are genuinely needed, document with error code and justification
+- `assert` for invariants that should never fail, not generic runtime errors -- asserts document assumptions and fail fast in development
+- `ModelRetry` for recoverable tool errors (timeouts, validation failures) vs hard failure -- distinguishing transient from terminal errors enables self-correction
+*Source: pydantic-ai/agent_docs/api-design.md*
+
+### Business Logic Separation Rule
+
+- All business logic must live in the core library; CLI and MCP are thin presentation layers that call core methods and format output only
+- Anti-patterns: parsing IDs in CLI/MCP, data transformation in presentation layers, duplicate logic across CLI and MCP, validation in presentation layer
+- Heavily mocked unit tests are a red flag that code is doing too much or living in the wrong layer -- if testing is hard, move the logic to where it's naturally testable
+*Source: claude-task-master/CLAUDE.md*
+
+### No-Barrel-File Convention
+
+- Never create `index.ts` files that only re-export -- the name `index.ts` lacks semantic meaning and adds unnecessary indirection
+- Import directly from source files: `import { Cookies } from "@expect/cookies/cookies"` not `from "@expect/cookies"`
+- Barrel files obscure the actual location of symbols, making both human navigation and automated analysis harder
+*Source: expect/AGENTS.md*
+
+### Stale Closure as a Time-Reasoning Failure (Andrew Orobator Pt 6)
+The Sparkpass payment-bug autopsy: **a 2-second async gap colliding with a state transition.** Not a normal bug class -- requires reasoning about TIME, not just control flow.
+
+**The failure mechanism:**
+```js
+const pollStatus = useCallback(async () => {
+  const currentState = stateRef.current;  // Captured at T=0
+  const result = await apiClient(...);    // Takes 1-2 seconds
+  // At T=2, currentState is STALE -- state already moved to "success"
+  if (status.ticket?.status === "PAID" && currentState === "ticket") {
+    setState("ticket_paid");  // CORRUPTS success state!
+  }
+}, []);
+```
+
+- State machine advanced: `ticket` → `ticket_paid` → `finalizing` → `success`
+- But an in-flight poll completed with stale snapshot from 2 sec ago
+- Saw `currentState === "ticket"` (true *when poll started*)
+- Called `setState("ticket_paid")` -- overwrote `success`
+- UI had no render case for that corrupted state → blank screen
+
+**Why Claude misses this class:** invalid inputs, network timeouts, expired invoices -- all handled. But "what happens when an async callback outlives its state?" requires reasoning about temporal ordering. Without explicit prompting on race conditions, models don't think about T=0 vs T=2 mismatches.
+
+**The fix:** re-read the ref *after* the await, not before. Plus 4 other related fixes (React StrictMode duplicate calls, polling triggering multiple finalize calls, finalize endpoint not idempotent, etc.) -- each compounded the others.
+
+**Generalized pattern recognition:**
+- Any async callback that captures state via closure → check that captured state is still valid post-await
+- Stop polling in terminal states (preventive guard, not regression test)
+- Idempotency required for any "complete" / "finalize" endpoint that can be triggered multiple times
+- Async + state transitions = always check stale-closure risk
+
+**Skill that fired from this:** `react-async-patterns` -- 4 safe patterns (data replacement, conditional state transitions with re-read after await, terminal state guards, cleanup guards with AbortController). Now auto-fires whenever Claude touches async React code with polling or state transitions.
+
+*Source: Andrew-Vibe-Coding/Vibe Engineering From Random Code to Deterministic Systems (Part 6).md*
 
 ---
 
@@ -381,6 +492,41 @@ Failure patterns specific to Claude Code in CI/CD environments that fail silentl
 
 *Sources: claude-code-action/docs/security.md, claude-code-monitoring-guide/troubleshooting.md*
 
+### The Lethal Trifecta: Structurally Unsolvable Agent Security
+- Named pattern from Simon Willison: whenever an AI agent has access to (1) private data, (2) exposure to untrusted content (e.g., incoming email), AND (3) ability to exfiltrate data externally (e.g., sending replies), the combination creates a structurally exploitable attack surface
+- Prompt injection -- malicious instructions embedded in untrusted content that override the agent's intended behavior -- cannot be reliably prevented even in well-designed systems
+- The trifecta is not a configuration mistake; it is an architectural property. Any agent with all three legs is vulnerable regardless of model quality or safety tuning
+- Willison has predicted a "Challenger disaster" for AI agent security every six months for three years; no mass-casualty event yet, but the structural vulnerability exists in every deployed email-reading, reply-sending agent
+- Mitigation requires removing at least one leg: read-only access (no exfiltration), sandboxed external content (no private data exposure during untrusted content processing), or outbound monitoring/approval gates
+
+(see [Agent Security Threat Model](failure-patterns.md#agent-security-threat-model-6-attack-classes) for related attack classes; see [autonomous-agents.md](autonomous-agents.md#rule-2-never-expose-to-public-input) for the operational security rule)
+
+*Source: 2026-04-03-lennysan-my-biggest-takeaways-from-simonw-1-november-2025-was-an-infl.md*
+
+### Prompt Injection in Production: Real Incident and Defenses
+
+- Prompt injection is a real production threat: one crafted email extracted a private API key from an OpenClaw agent by hiding instructions in the message body
+- Defense requires: stripping invisible Unicode, sanitizing all external inputs, blocking outbound data leakage from tool results
+- Never trust content from external sources (emails, web pages, API responses) at the same privilege level as system instructions
+*Source: 2026-03-15-ericosiu-httpstcokldqwohczf.md*
+
+### Pre-Clone Repo Scanning with Grok
+- Before cloning any GitHub repo from social media, use `@grok` in the comments to scan for malicious code, hidden scripts, suspicious postinstall hooks, or anything that could steal credentials/wallet keys/env variables
+- Practical defense against the prompt injection vector where a malicious `CLAUDE.md` or dependency in a cloned repo hijacks Claude Code on first run
+- Defense-in-depth: complements sandbox + deny rules (see [project-setup.md](project-setup.md#three-level-claude-code-security-hardening-ladder)) -- scanning happens BEFORE the code reaches your machine
+
+*Source: 2026-04-07-Axel_bitblaze69-claude-code-users-quick-tip-before-you-clone-any-github-repo.md*
+
+### AI Project Secret Leak Statistics
+- GitGuardian tracked AI projects: 40% higher secret leak rate than regular software projects
+- Average credential leak takes 197 days to detect -- attacker has had access for over 6 months before discovery
+- Average AWS credential leak costs $8,000-$50,000 in a single night of unauthorized usage
+- Check Point identified an MCP attack vector where a malicious `.mcp.json` config in a cloned repo can hijack Claude mid-session, redirecting tool calls through an attacker-controlled server
+
+(see [project-setup.md](project-setup.md#three-level-claude-code-security-hardening-ladder) for the defense ladder)
+
+*Source: 2026-04-08-noisyb0y1-httpstcoyvurya7dji.md*
+
 ---
 
 ## The Fix Protocol
@@ -460,5 +606,24 @@ A reusable checklist organized by problem type:
 4. Request foundational concepts
 5. Do not move forward until it makes sense
 
-*Source: Learning CC/notes/module-6-reflection.md*
+*Source: Learning-CC/notes/module-6-reflection.md*
 
+### Multi-Agent Diagnosis + Constitutional Invariants -- The Failure-Design Workflow (Andrew Orobator Pt 6)
+The full workflow for designing failure BEFORE it designs you. Pairs three primitives: persona-based diagnosis + invariant definition + worklog-bounded scope.
+
+**Step 1: Multi-persona diagnosis (different lenses on same bug).** See [agent-design.md > Multi-Persona Diagnostic Loop](agent-design.md#multi-persona-diagnostic-loop----three-lenses-on-the-same-bug-andrew-orobator-pt-6) for the @BTC/@Systems/@UX example. Without the personas, would have fixed the symptom (blank screen) and moved on. With them, designed a resilience strategy.
+
+**Step 2: Define constitutional invariants BEFORE writing code.** Each invariant becomes a verification test. INV-1 ("Lightning is the source of truth") shaped everything -- recovery flowed from it. INV-5 ("graceful degradation over total failure") prevented over-engineering an event-driven message-queue architecture. **Invariants don't constrain -- they remove the wrong solution from the search space.**
+
+**Step 3: Worklog with explicit deferral rationale.** 6 milestones planned, 2 shipped, 4 deferred (event-driven architecture, circuit breaker, monitoring dashboard, retry queue) with @Founder-Agent commentary: "M1-M2 fix the user-facing problem. M3-M6 are infrastructure hardening for a product with zero users. Ship, launch, harden later." Without this, Claude implements all 6.
+
+**Step 4: Red-green commit discipline.** 7 commits, each: failing test → red → fix → green → full suite. Then Playwright confirms the integration. **"The AI is random. The gate is deterministic. Spin until green."**
+
+**Step 5: Feedback loop -- 2 failures generated 3 permanent improvements:**
+- `react-async-patterns` skill (new)
+- `payment-flow` skill: "Recovery Strategy" required section + cron jobs every 5 min syncing payment status from NWC
+- `@UX-Agent` persona update: "During degradation, what does the user see? Is it actionable?" added to review checklist
+
+**The principle:** **"You can't prevent every failure. You can design what happens next."** Personas tell you what to look for. Invariants define what "correct" means. Worklog controls scope. Feedback loop makes lessons outlive the session.
+
+*Source: Andrew-Vibe-Coding/Vibe Engineering From Random Code to Deterministic Systems (Part 6).md*

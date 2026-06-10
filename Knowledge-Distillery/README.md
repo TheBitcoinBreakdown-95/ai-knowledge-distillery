@@ -2,7 +2,7 @@
 
 See the [main README](../README.md) for the full project overview, topic file index, quick start guide, and architecture details.
 
-This directory contains the 12 synthesized topic files, project docs (SOUL.md, DECISIONS.md, LEARNING-PATH.md, kickoff-guide.md), and the commands/ directory with slash command sources.
+This directory contains 15 synthesized topic files, project docs (SOUL.md, DECISIONS.md, LEARNING-PATH.md, kickoff-guide.md), and the commands/ directory with slash command sources.
 
 ## For AI Agents
 

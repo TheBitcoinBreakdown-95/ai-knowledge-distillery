@@ -124,7 +124,7 @@ Patterns for daily use. Apply these in almost every task to get consistent, high
 
 - **Why:** Every bug is a future prevention. The cycle: mistake → lesson → skill update → prevention. Applied in real time, in the same session while context is fresh.
 - **Takeaway:** When the AI makes a mistake, update the relevant skill immediately. Do not wait for a post-mortem.
-- **Link:** [skills.md → The Skill Lifecycle](skills.md#the-skill-lifecycle-mistake-lesson-skill-prevention)
+- **Link:** [skills.md → The Skill Lifecycle](skills.md#the-skill-lifecycle-mistake---lesson---skill---prevention)
 - **Prerequisites:** #12 (Skills), #5 (Verify Artifacts)
 - **Depth:** 5 min read
 
@@ -186,7 +186,7 @@ For complex projects, distributed work, or pushing beyond single-session product
 
 - **Why:** MCP extends Claude Code's capabilities beyond its built-in tools. Database access, browser automation, file conversion, API integration -- all as tool calls within the same session.
 - **Takeaway:** Start with 1-2 MCPs for your most common tasks. Avoid loading 10+ MCPs (context budget: keep total tool count under 30).
-- **Link:** [tools-and-integrations.md → MCP Servers](tools-and-integrations.md#mcp-servers-extending-capabilities)
+- **Link:** [tools-and-integrations.md → MCP Servers](mcp-servers.md)
 - **Prerequisites:** #12 (Skills), #20 (Prompt Cache)
 - **Depth:** 15 min read
 
@@ -216,7 +216,7 @@ Niche domains, autonomous systems, and architectural decisions for specific use 
 
 - **Why:** Cost-optimized multi-model setup. Brain (Opus/Sonnet) handles orchestration and strategy. Muscles (Haiku/specialized models) handle execution. Prevents paying Opus prices for routine tasks.
 - **Takeaway:** Route complex reasoning to expensive models, routine execution to cheap ones. Progressive path: start single-model, add muscles as bottlenecks appear.
-- **Link:** [agent-design.md → Brain + Muscles Pattern](agent-design.md#brain--muscles-pattern-from-openclaw)
+- **Link:** [agent-design.md → Brain + Muscles Pattern](agent-design.md#brain-muscles-pattern-from-openclaw)
 - **Prerequisites:** #18 (Meta-Agent)
 - **Depth:** 10 min read
 

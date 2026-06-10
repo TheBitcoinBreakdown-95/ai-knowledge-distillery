@@ -36,7 +36,7 @@ SYNONYMS = {
     "invariants": "invariants binary pass fail verification",
 }
 
-KB_DIR = Path(os.environ.get("KB_DIR", str(Path(__file__).parent.parent / "Knowledge Distillery")))
+KB_DIR = Path(os.environ.get("KB_DIR", str(Path(__file__).parent.parent / "Knowledge-Distillery")))
 
 mcp = FastMCP("kb-retrieval", instructions=(
     "Knowledge Distillery retrieval server. Use search_kb for semantic queries, "

@@ -199,7 +199,7 @@ The report recommends skills as "retrieval wrappers" with supporting files for l
 The report describes the exact pattern we implemented: "`MEMORY.md` acts as a concise always-loaded index (first 200 lines), with topic files read on demand." We restructured MEMORY.md from 131 lines of project detail to a ~45-line index with pointers to detail files.
 
 **Path-scoped rules**
-The report calls path-scoped rules "the single best noise reduction lever for monorepos." We created `.claude/rules/kb-editing.md` scoped to `Knowledge Distillery/**/*.md` with 6 editing constraints. The report validates this as reducing token cost and instruction noise.
+The report calls path-scoped rules "the single best noise reduction lever for monorepos." We created `.claude/rules/kb-editing.md` scoped to `Knowledge-Distillery/**/*.md` with 6 editing constraints. The report validates this as reducing token cost and instruction noise.
 
 **Staged implementation (Decision: Optimization Plan structure)**
 The report recommends "stage-gated, anti-overengineering" implementation with explicit "stop signs." Our 15-phase optimization plan with dependencies, status tracking, and "parked" items for premature ideas matches this philosophy exactly.

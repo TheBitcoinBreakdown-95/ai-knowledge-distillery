@@ -12,9 +12,12 @@ from pathlib import Path
 TOPIC_FILES = [
     "agent-design.md",
     "autonomous-agents.md",
+    "bitcoin-ai.md",
     "community-insights.md",
     "context-engineering.md",
     "failure-patterns.md",
+    "learning-resources.md",
+    "mcp-servers.md",
     "memory-persistence.md",
     "project-setup.md",
     "prompt-engineering.md",
